@@ -1,0 +1,15 @@
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# Environment files (may contain secrets)
+.env
+.env.local
+
+# Command Code internal files
+.commandcode/
