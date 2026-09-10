@@ -44,6 +44,8 @@ npm init playwright@latest
 │   ├── tta-check.spec.ts      # codegen-recorded login flow (Testing Academy app)
 │   ├── normal_pw.ts           # standalone script: launch browser, open a page
 │   └── multiple_context.ts    # standalone script: two isolated contexts
+├── Architecture/
+│   └── index.html             # architecture reference: layers, diagrams, glossary
 ├── playwright-report/         # generated HTML report (gitignored)
 └── test-results/              # per-run artifacts and traces (gitignored)
 ```
@@ -172,6 +174,17 @@ run: npx playwright test
 ```
 
 Note that `headless: false` in the config means CI needs a virtual display, or you should override it with `npx playwright test --headless` in the workflow.
+
+## Architecture reference
+
+`Architecture/index.html` is a self-contained reference page on how Playwright works internally — the three layers (client library, driver, browser engines), the protocols (CDP, Juggler, WebKit), the runner/worker model, the browser → context → page hierarchy, auto-waiting, locators, and a glossary. Open it directly in a browser:
+
+```bash
+start Architecture/index.html      # Windows
+open Architecture/index.html       # macOS
+```
+
+It has no external dependencies, so it works offline, and every diagram is inline SVG.
 
 ## Learn more
 
