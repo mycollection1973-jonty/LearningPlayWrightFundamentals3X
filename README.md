@@ -108,6 +108,12 @@ Run a single test file:
 npx playwright test tests/example.spec.ts
 ```
 
+Each spec runs once per browser project, so the two spec files add up to 9 tests across Chromium, Firefox, and WebKit. To see what would run without launching a browser, list the collected tests:
+
+```bash
+npx playwright test --list
+```
+
 Run only one browser, or force the browser to stay hidden:
 
 ```bash
