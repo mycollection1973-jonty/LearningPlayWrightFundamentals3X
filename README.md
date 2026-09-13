@@ -1,6 +1,6 @@
 # Learning Playwright Fundamentals
 
-A project for learning end-to-end testing with [Playwright](https://playwright.dev). It contains example specs built against the Playwright docs site and the Testing Academy practice app, plus a couple of standalone scripts that exercise the raw Playwright API (`browser` → `context` → `page`).
+A project for learning end-to-end testing with [Playwright](https://playwright.dev). The specs live under `tests/` in three numbered learning tracks — basics, test annotations, and locator commands — built against the Playwright docs site, the Testing Academy practice app, and a few other demo sites. A few standalone scripts also exercise the raw Playwright API (`browser` → `context` → `page`) outside the test runner.
 
 ## Prerequisites
 
@@ -37,24 +37,33 @@ npm init playwright@latest
 
 ```text
 .
-├── playwright.config.ts       # test runner configuration
-├── package.json               # dependencies
+├── playwright.config.ts                    # test runner configuration
+├── package.json                            # dependencies
 ├── tests/
-│   ├── example.spec.ts        # title assertions against playwright.dev
-│   ├── tta-check.spec.ts      # codegen-recorded login flow (Testing Academy app)
-│   ├── normal_pw.ts           # standalone script: launch browser, open a page
-│   └── multiple_context.ts    # standalone script: two isolated contexts
+│   ├── 01_Basics/
+│   │   ├── 01_01_example.spec.ts           # title assertions against playwright.dev
+│   │   ├── 01_02_tta-check.spec.ts         # codegen-recorded login flow (Testing Academy app)
+│   │   ├── 01_03_normal_pw.ts              # standalone script: browser → context → page
+│   │   ├── 01_04_multiple_context.ts       # standalone script: two isolated contexts
+│   │   ├── 01_05_BCP.spec.ts               # standalone script: annotated BCP walkthrough
+│   │   ├── 01_06_TA.spec.ts                # multi-context tests using the `browser` fixture
+│   │   └── 01_07_Test_Options.spec.ts      # context options (viewport, locale, geolocation, …)
+│   ├── 02_TestAnnotations/
+│   │   ├── 02_01_TestAnnotations.spec.ts   # skip / only / fail / fixme / slow
+│   │   └── 02_02_TestDescribe.spec.ts      # grouping tests with test.describe
+│   └── 03_Locator_Commands/
+│       └── 03_01_LC.spec.ts                # locator commands practice
 ├── Architecture/
-│   └── index.html             # architecture reference: layers, diagrams, glossary
-├── playwright-report/         # generated HTML report (gitignored)
-└── test-results/              # per-run artifacts and traces (gitignored)
+│   └── index.html                          # architecture reference: layers, diagrams, glossary
+├── playwright-report/                      # generated HTML report (gitignored)
+└── test-results/                           # per-run artifacts and traces (gitignored)
 ```
 
 ### Playwright config
 
 `playwright.config.ts` defines:
 
-- **`testDir`** — where your specs live (`./tests`)
+- **`testDir`** — where your specs live (`./tests`), scanned recursively
 - **`projects`** — which browsers to run: Chromium, Firefox, and WebKit are pre-configured
 - **`use`** — shared options. This project sets `headless: false`, so browsers are visible by default, and `trace: 'on-first-retry'` to capture a trace whenever a test is retried
 - **`reporter`** — test output format (`html`, written to `playwright-report/`)
@@ -64,10 +73,23 @@ npm init playwright@latest
 
 ### Specs (run by the Playwright test runner)
 
-Files ending in `.spec.ts` are picked up automatically:
+Files ending in `.spec.ts` are picked up automatically from anywhere under `tests/`. They are grouped into numbered learning tracks:
 
-- **`tests/example.spec.ts`** — navigates to `https://playwright.dev/` and asserts the page title. Currently runs the same check from a `viewer` and an `admin` test as a first look at independent test cases.
-- **`tests/tta-check.spec.ts`** — a Codegen-recorded login flow against `https://app.thetestingacademy.com/playwright/multiple_element_filter`. Fills the email and password fields with `getByRole` locators and clicks the login button with `getByTestId`.
+**`01_Basics/`** — the fundamentals:
+
+- **`01_01_example.spec.ts`** — navigates to `https://playwright.dev/` and asserts the page title, from two independent tests (`viewer` and `admin`).
+- **`01_02_tta-check.spec.ts`** — a Codegen-recorded login flow against `https://app.thetestingacademy.com/playwright/multiple_element_filter`. Fills the email and password fields with `getByRole` locators and clicks the login button with `getByTestId`.
+- **`01_06_TA.spec.ts`** — one test navigates to the Testing Academy site; another takes the `browser` fixture, opens three contexts (admin, user, guest), and drives each one to a different site independently.
+- **`01_07_Test_Options.spec.ts`** — creates contexts with explicit options: viewport size, locale, timezone, geolocation, and permissions. The second test builds a phone-shaped "mobile context" with a user agent, `deviceScaleFactor`, `isMobile`, and `hasTouch`.
+
+**`02_TestAnnotations/`** — controlling what runs:
+
+- **`02_01_TestAnnotations.spec.ts`** — demonstrates `test.skip`, `test.only`, `test.fail`, `test.fixme`, and `test.slow()`, including a conditional `test.fixme` that only applies on WebKit. Note the active `test.only` — see [Running tests](#running-tests).
+- **`02_02_TestDescribe.spec.ts`** — groups tests under a `test.describe('Login Page', …)` block with a mix of normal, `fixme`, and `skip` tests. Run just that group with `npx playwright test -g "Login Page"`.
+
+**`03_Locator_Commands/`** — locator practice:
+
+- **`03_01_LC.spec.ts`** — currently just navigates to the multi-element filter page, ready for locator exercises.
 
 Example of the style used:
 
@@ -82,19 +104,23 @@ test('viewer', async ({ page }) => {
 });
 ```
 
-### Standalone scripts (not run by the test runner)
+### Standalone scripts (not tests)
 
-`tests/normal_pw.ts` and `tests/multiple_context.ts` are plain scripts, not `test()` specs, and they import from `playwright` rather than `@playwright/test` — so `npx playwright test` ignores them. Run them with a TypeScript runner instead:
+Three files under `tests/01_Basics/` are plain scripts, not `test()` specs. They import from `playwright` (the library) rather than `@playwright/test` (the runner), so they are executed directly instead of being run as tests:
+
+- **`01_03_normal_pw.ts`** — launches Chromium, creates a context and a page, goes to `https://example.com`, logs the page title, then closes page → context → browser in that order.
+- **`01_04_multiple_context.ts`** — launches a single browser and opens two independent contexts, one for an admin user and one for a viewer, each with its own page and session. This is the pattern to reach for whenever a test needs more than one logged-in user at a time.
+- **`01_05_BCP.spec.ts`** — the same browser → context → page walkthrough with comments at each level and the matching teardown. Despite the `.spec.ts` name it declares no tests, so the runner collects nothing from it; rename it to `.ts` if you would rather keep it out of collection entirely.
+
+Run them with a TypeScript runner:
 
 ```bash
-npx tsx tests/normal_pw.ts
-npx tsx tests/multiple_context.ts
+npx tsx tests/01_Basics/01_03_normal_pw.ts
+npx tsx tests/01_Basics/01_04_multiple_context.ts
+npx tsx tests/01_Basics/01_05_BCP.spec.ts
 ```
 
-Running `node tests/normal_pw.ts` directly does not work here: `package.json` sets `"type": "commonjs"`, so Node treats `.ts` files as CommonJS TS and rejects the ESM `import` statements with `SyntaxError: Cannot use import statement outside a module`. A runner such as `tsx` handles the TypeScript and the module interop for you.
-
-- **`normal_pw.ts`** — launches Chromium, creates a context and a page, goes to `https://example.com`, logs the page title, then closes page → context → browser in that order.
-- **`multiple_context.ts`** — launches a single browser and opens two independent contexts, one for an admin user and one for a viewer, each with its own page and session. This is the pattern to reach for whenever a test needs more than one logged-in user at a time.
+Running `node tests/01_Basics/01_03_normal_pw.ts` directly does not work here: `package.json` sets `"type": "commonjs"`, so Node treats `.ts` files as CommonJS TS and rejects the ESM `import` statements with `SyntaxError: Cannot use import statement outside a module`. A runner such as `tsx` handles the TypeScript and the module interop for you.
 
 ## Running tests
 
@@ -104,13 +130,16 @@ Run all tests in all configured browsers:
 npx playwright test
 ```
 
-Run a single test file:
+> **Note** — `02_01_TestAnnotations.spec.ts` currently has an active `test.only('login as man')`. Focus mode is run-wide, so while that line is there a full run executes only that one test (once per browser project) and everything else is skipped. Remove or comment out the `.only` to run the whole suite.
+
+Run a single test file or a whole track:
 
 ```bash
-npx playwright test tests/example.spec.ts
+npx playwright test tests/01_Basics/01_01_example.spec.ts
+npx playwright test tests/03_Locator_Commands
 ```
 
-Each spec runs once per browser project, so the two spec files add up to 9 tests across Chromium, Firefox, and WebKit. To see what would run without launching a browser, list the collected tests:
+Each spec runs once per browser project, so the collected set is the same tests three times over — `npx playwright test --list` currently reports 54 tests. To see what would run without launching a browser:
 
 ```bash
 npx playwright test --list
@@ -173,7 +202,7 @@ run: npx playwright install --with-deps
 run: npx playwright test
 ```
 
-Note that `headless: false` in the config means CI needs a virtual display, or you should override it with `npx playwright test --headless` in the workflow.
+Note that `headless: false` in the config means CI needs a virtual display, or you should override it with `npx playwright test --headless` in the workflow. Also keep in mind that `forbidOnly` is enabled on CI, so a committed `test.only` will fail the build there.
 
 ## Architecture reference
 
