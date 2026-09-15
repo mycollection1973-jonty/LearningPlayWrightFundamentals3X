@@ -1,6 +1,6 @@
 # Learning Playwright Fundamentals
 
-A project for learning end-to-end testing with [Playwright](https://playwright.dev). The specs live under `tests/` in three numbered learning tracks — basics, test annotations, and locator commands — built against the Playwright docs site, the Testing Academy practice app, and a few other demo sites. A few standalone scripts also exercise the raw Playwright API (`browser` → `context` → `page`) outside the test runner.
+A project for learning end-to-end testing with [Playwright](https://playwright.dev). The specs live under `tests/` in numbered learning tracks — basics, test annotations, and locator commands, plus a `DailyTask/` folder for day-to-day practice — built against the Playwright docs site, the Testing Academy and VWO practice apps, the Katalon Cura demo app, and a few other demo sites. A few standalone scripts also exercise the raw Playwright API (`browser` → `context` → `page`) outside the test runner.
 
 ## Prerequisites
 
@@ -51,8 +51,17 @@ npm init playwright@latest
 │   ├── 02_TestAnnotations/
 │   │   ├── 02_01_TestAnnotations.spec.ts   # skip / only / fail / fixme / slow
 │   │   └── 02_02_TestDescribe.spec.ts      # grouping tests with test.describe
-│   └── 03_Locator_Commands/
-│       └── 03_01_LC.spec.ts                # locator commands practice
+│   ├── 03_Locator_Commands/
+│   │   ├── 03_01_LC.spec.ts                # goto options: waitUntil, timeout, referer
+│   │   ├── 03_02_Refere.spec.ts            # referer applied to a whole context
+│   │   └── 03_03_Fresh.spec.ts             # default/CSS locators on the VWO login page
+│   ├── 04_Session_Storage/                 # reserved: storageState / auth reuse
+│   ├── 05_Allure_Reporting/                # reserved: Allure reports
+│   ├── 06_Multiple_Element_Filter/         # reserved
+│   ├── 07_WebTables/                       # reserved
+│   ├── 08_Web_Select_Frames_IFrame/        # reserved
+│   └── DailyTask/
+│       └── 01_159_LoginPage.spec.ts        # Katalon Cura login, asserts the page header
 ├── Architecture/
 │   └── index.html                          # architecture reference: layers, diagrams, glossary
 ├── playwright-report/                      # generated HTML report (gitignored)
@@ -73,7 +82,7 @@ npm init playwright@latest
 
 ### Specs (run by the Playwright test runner)
 
-Files ending in `.spec.ts` are picked up automatically from anywhere under `tests/`. They are grouped into numbered learning tracks:
+Files ending in `.spec.ts` are picked up automatically from anywhere under `tests/`. They are grouped into numbered learning tracks, plus a `DailyTask/` folder for practice exercises:
 
 **`01_Basics/`** — the fundamentals:
 
@@ -87,9 +96,17 @@ Files ending in `.spec.ts` are picked up automatically from anywhere under `test
 - **`02_01_TestAnnotations.spec.ts`** — demonstrates `test.skip`, `test.only`, `test.fail`, `test.fixme`, and `test.slow()`, including a conditional `test.fixme` that only applies on WebKit. Note the active `test.only` — see [Running tests](#running-tests).
 - **`02_02_TestDescribe.spec.ts`** — groups tests under a `test.describe('Login Page', …)` block with a mix of normal, `fixme`, and `skip` tests. Run just that group with `npx playwright test -g "Login Page"`.
 
-**`03_Locator_Commands/`** — locator practice:
+**`03_Locator_Commands/`** — locator practice and navigation options:
 
-- **`03_01_LC.spec.ts`** — currently just navigates to the multi-element filter page, ready for locator exercises.
+- **`03_01_LC.spec.ts`** — exercises `page.goto` options: a first navigation to the multi-element filter page with `waitUntil: 'commit'`, then a second with `waitUntil: 'domcontentloaded'`, a 45-second `timeout`, and a `referer` header, keeping the returned response.
+- **`03_02_Refere.spec.ts`** — sets `Referer` once through `extraHTTPHeaders` on a context created from the `browser` fixture, so every page opened in that context (VWO, then Katalon Cura) sends it — the context-wide counterpart to the per-navigation `referer` in `03_01`.
+- **`03_03_Fresh.spec.ts`** — logs into `app.vwo.com` with default locators (`#login-username`, `#login-password`, `#js-login-btn`), asserts the inline error message for bad credentials, and ends with `page.pause()` to stop in the inspector — comment that line out before a full run, since it halts the test until you resume it manually.
+
+**`DailyTask/`** — day-to-day practice exercises:
+
+- **`01_159_LoginPage.spec.ts`** — clicks "Make Appointment" on the Katalon Cura demo app, logs in as `John Doe`, and asserts the header on the appointment page.
+
+Folders `04_Session_Storage/`, `05_Allure_Reporting/`, `06_Multiple_Element_Filter/`, `07_WebTables/`, and `08_Web_Select_Frames_IFrame/` are empty placeholders for upcoming tracks. Git does not store empty directories, so they will not show up after a clone until a file lands in each one.
 
 Example of the style used:
 
@@ -139,7 +156,7 @@ npx playwright test tests/01_Basics/01_01_example.spec.ts
 npx playwright test tests/03_Locator_Commands
 ```
 
-Each spec runs once per browser project, so the collected set is the same tests three times over — `npx playwright test --list` currently reports 54 tests. To see what would run without launching a browser:
+Each spec runs once per browser project, so the collected set is the same tests three times over — `npx playwright test --list` currently reports 63 tests across 10 spec files. To see what would run without launching a browser:
 
 ```bash
 npx playwright test --list
