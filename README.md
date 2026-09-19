@@ -54,14 +54,18 @@ npm init playwright@latest
 │   ├── 03_Locator_Commands/
 │   │   ├── 03_01_LC.spec.ts                # goto options: waitUntil, timeout, referer
 │   │   ├── 03_02_Refere.spec.ts            # referer applied to a whole context
-│   │   └── 03_03_Fresh.spec.ts             # default/CSS locators on the VWO login page
+│   │   ├── 03_03_Fresh.spec.ts             # default/CSS locators on the VWO login page
+│   │   ├── 03_04_Project3.spec.ts          # XPath locators + validation message (Wingify free trial)
+│   │   ├── 03_05_getByRole.spec.ts         # role-based textbox locators on the VWO login page
+│   │   └── 03_06_getByRole.spec.ts         # role-based link locator on the Katalon Cura app
 │   ├── 04_Session_Storage/                 # reserved: storageState / auth reuse
 │   ├── 05_Allure_Reporting/                # reserved: Allure reports
 │   ├── 06_Multiple_Element_Filter/         # reserved
 │   ├── 07_WebTables/                       # reserved
 │   ├── 08_Web_Select_Frames_IFrame/        # reserved
 │   └── DailyTask/
-│       └── 01_159_LoginPage.spec.ts        # Katalon Cura login, asserts the page header
+│       ├── 01_159_LoginPage.spec.ts        # Katalon Cura login, asserts the page header
+│       └── 02_179_LoginPage.spec.ts        # TTA login with bad credentials, asserts the URL
 ├── Architecture/
 │   └── index.html                          # architecture reference: layers, diagrams, glossary
 ├── playwright-report/                      # generated HTML report (gitignored)
@@ -101,10 +105,14 @@ Files ending in `.spec.ts` are picked up automatically from anywhere under `test
 - **`03_01_LC.spec.ts`** — exercises `page.goto` options: a first navigation to the multi-element filter page with `waitUntil: 'commit'`, then a second with `waitUntil: 'domcontentloaded'`, a 45-second `timeout`, and a `referer` header, keeping the returned response.
 - **`03_02_Refere.spec.ts`** — sets `Referer` once through `extraHTTPHeaders` on a context created from the `browser` fixture, so every page opened in that context (VWO, then Katalon Cura) sends it — the context-wide counterpart to the per-navigation `referer` in `03_01`.
 - **`03_03_Fresh.spec.ts`** — logs into `app.vwo.com` with default locators (`#login-username`, `#login-password`, `#js-login-btn`), asserts the inline error message for bad credentials, and ends with `page.pause()` to stop in the inspector — comment that line out before a full run, since it halts the test until you resume it manually.
+- **`03_04_Project3.spec.ts`** — the Wingify free-trial form: fills the email field (`//input[@id='free-trial-step1-email']`) with an invalid value, ticks the two consent checkboxes by `#id` and `[data-qa=…]`, submits, and asserts the validation text *"The email address you entered is incorrect."* Also ends with `page.pause()`.
+- **`03_05_getByRole.spec.ts`** — reaches for role-based locators on the VWO login page: `getByRole('textbox', { name: 'Email', exact: true })` and `getByRole('textbox', { name: 'Password' })`, fills both, and pauses in the inspector.
+- **`03_06_getByRole.spec.ts`** — goes straight to the Katalon Cura appointment page and clicks the "Make Appointment" link resolved with `getByRole('link', { name: 'Make Appointment', exact: true })`. Pauses before finishing — this one is about proving the role locator finds the right element.
 
 **`DailyTask/`** — day-to-day practice exercises:
 
 - **`01_159_LoginPage.spec.ts`** — clicks "Make Appointment" on the Katalon Cura demo app, logs in as `John Doe`, and asserts the header on the appointment page.
+- **`02_179_LoginPage.spec.ts`** — logs into the Testing Academy multi-element-filter page with deliberately wrong credentials (CSS `#email` / `#password` locators, XPath for the checkbox and button) and asserts the URL it lands on includes the submitted email, password, and `remember=yes` plus the `#login-success` fragment. Pauses at the end.
 
 Folders `04_Session_Storage/`, `05_Allure_Reporting/`, `06_Multiple_Element_Filter/`, `07_WebTables/`, and `08_Web_Select_Frames_IFrame/` are empty placeholders for upcoming tracks. Git does not store empty directories, so they will not show up after a clone until a file lands in each one.
 
@@ -149,6 +157,8 @@ npx playwright test
 
 > **Note** — `02_01_TestAnnotations.spec.ts` currently has an active `test.only('login as man')`. Focus mode is run-wide, so while that line is there a full run executes only that one test (once per browser project) and everything else is skipped. Remove or comment out the `.only` to run the whole suite.
 
+> **Note** — five specs call `page.pause()` at the end, which opens the Inspector and waits for you to resume: `03_03_Fresh.spec.ts`, `03_04_Project3.spec.ts`, `03_05_getByRole.spec.ts`, `03_06_getByRole.spec.ts`, and `DailyTask/02_179_LoginPage.spec.ts`. A full run stops at each one, so comment those lines out (or run the specific file you are working on) when you want a clean pass.
+
 Run a single test file or a whole track:
 
 ```bash
@@ -156,7 +166,7 @@ npx playwright test tests/01_Basics/01_01_example.spec.ts
 npx playwright test tests/03_Locator_Commands
 ```
 
-Each spec runs once per browser project, so the collected set is the same tests three times over — `npx playwright test --list` currently reports 63 tests across 10 spec files. To see what would run without launching a browser:
+Each spec runs once per browser project, so the collected set is the same tests three times over — `npx playwright test --list` currently reports 75 tests across 14 spec files. To see what would run without launching a browser:
 
 ```bash
 npx playwright test --list
