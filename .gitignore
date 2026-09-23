@@ -7,9 +7,20 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 
+# Custom TTA reporter output
+/tta-report/
+/reports/
+
+# Allure reporter output
+/allure-results/
+/allure-report/
+
 # Environment files (may contain secrets)
 .env
 .env.local
+
+# Saved browser sessions (contain live auth cookies)
+user-session.json
 
 # Command Code internal files
 .commandcode/
