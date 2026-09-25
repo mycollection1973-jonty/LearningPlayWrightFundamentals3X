@@ -1,5 +1,5 @@
 // 22-09-2026
-//npx playwright test tests/04_Session_Storage/232_TestWingify.spec.ts --reporter=list  
+//npx playwright test tests/04_Session_Storage/04_02_TestWingify.spec.ts --reporter=list  
 import { test, expect } from '@playwright/test';
 
 //  load the saved session
@@ -7,6 +7,7 @@ import { test, expect } from '@playwright/test';
 test.use(
     {
         storageState : './user-session.json'
+       // screenshot : 'only-on-failure',
     }
 );
 

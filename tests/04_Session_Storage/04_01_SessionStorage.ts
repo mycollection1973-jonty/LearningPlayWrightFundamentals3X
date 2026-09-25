@@ -4,6 +4,7 @@
 // there is error so we run it through Command code by saying ca we run 04_01
 // npx tsx tests/04_Session_Storage/231_SessionStorage.ts 2>&1 | tail -30
 // this will run only one time
+// when we run user-session.json file will create
 import { chromium } from 'playwright';
 import dotenv from "dotenv";
 
