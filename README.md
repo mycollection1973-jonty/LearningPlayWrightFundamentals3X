@@ -1,6 +1,6 @@
 # Learning Playwright Fundamentals
 
-A project for learning end-to-end testing with [Playwright](https://playwright.dev). The specs live under `tests/` in numbered learning tracks — basics, test annotations, locator commands, saved-session reuse, and reporting, plus a `DailyTask/` folder for day-to-day practice — built against the Playwright docs site, the Testing Academy and VWO practice apps, the Katalon Cura demo app, and a few other demo sites. A few standalone scripts also exercise the raw Playwright API (`browser` → `context` → `page`) outside the test runner, and every run feeds three reporters at once: the console `line` reporter, Allure, and a custom TTA HTML reporter in `utils/`.
+A project for learning end-to-end testing with [Playwright](https://playwright.dev). The specs live under `tests/` in numbered learning tracks — basics, test annotations, locator commands, saved-session reuse, reporting, multiple-element filtering, and web tables, plus a `DailyTask/` folder for day-to-day practice — built against the Playwright docs site, the Testing Academy and VWO practice apps, the Katalon Cura demo app, the AwesomeQA practice tables, and a few other demo sites. A few standalone scripts also exercise the raw Playwright API (`browser` → `context` → `page`) outside the test runner, and every run feeds three reporters at once: the console `line` reporter, Allure, and a custom TTA HTML reporter in `utils/`.
 
 ## Prerequisites
 
@@ -43,6 +43,7 @@ npm init playwright@latest
 ├── package.json                            # dependencies
 ├── .env.example                            # template for VWO_USER / VWO_PASS (copy to .env)
 ├── user-session.json                       # saved login cookies used by the 04/05 tracks (gitignored)
+├── template/template.spec.ts               # starter template for new specs (outside testDir)
 ├── tests/
 │   ├── 01_Basics/
 │   │   ├── 01_01_example.spec.ts           # title assertions against playwright.dev
@@ -69,12 +70,18 @@ npm init playwright@latest
 │   │   ├── 05_01_TestWingify.spec.ts       # same dashboard checks, run for Allure
 │   │   ├── 05_02_Custom_Report_TestWingify.spec.ts        # same checks, for the custom TTA report
 │   │   └── 05_03_Media_Custom_Report_TestWingify.spec.ts  # + screenshot / video / trace capture
-│   ├── 06_Multiple_Element_Filter/         # reserved
-│   ├── 07_WebTables/                       # reserved
+│   ├── 06_Multiple_Element_Filter/
+│   │   ├── 06_01_ME.spec.ts                # allInnerTexts + click by text on the filter page
+│   │   └── 06_02_ME.spec.ts                # Locator[] from all(), logging every href
+│   ├── 07_WebTables/
+│   │   ├── 07_01_WebTable.spec.ts          # starter template copied in, not filled in yet
+│   │   ├── 07_02_WebTable_example1.spec.ts # dynamic XPath grid walk, finds Helen Bennett
+│   │   └── 07_03_WebTable_example2.spec.ts # row-by-row cell texts from the sample table
 │   ├── 08_Web_Select_Frames_IFrame/        # reserved
 │   └── DailyTask/
 │       ├── 01_159_LoginPage.spec.ts        # Katalon Cura login, asserts the page header
-│       └── 02_179_LoginPage.spec.ts        # TTA login with bad credentials, asserts the URL
+│       ├── 02_179_LoginPage.spec.ts        # TTA login with bad credentials, asserts the URL
+│       └── 03_259_WebTable.spec.ts         # TTA employee table: row / column counts
 ├── utils/
 │   ├── CustomReporter.ts                   # custom TTA HTML reporter (writes tta-report/)
 │   └── selfHeal.ts                         # attachment types for the reporter's Self-Heal tab
@@ -139,12 +146,26 @@ Files ending in `.spec.ts` are picked up automatically from anywhere under `test
 - **`05_02_Custom_Report_TestWingify.spec.ts`** — the same three checks a third time, under a name that says what to do with it: run it with `--reporter=./utils/CustomReporter.ts` and watch the TTA report fill up test by test. See [Reports](#reports).
 - **`05_03_Media_Custom_Report_TestWingify.spec.ts`** — generates its three tests in a `for` loop over `[1, 2, 3]`, each written as `test.step` blocks (`open the dashboard`, `confirm we are not on the login screen`, `attach a named screenshot`). It turns on `screenshot: 'on'`, `video: 'on'`, and `trace: 'on'` for the file and attaches a full-page PNG with `testInfo.attach(...)`, so the custom reporter has media to render. It uses account `1281316` and also asserts the login username field is hidden.
 
+**`06_Multiple_Element_Filter/`** — driving collections of elements:
+
+- **`06_01_ME.spec.ts`** — opens the Testing Academy multi-element-filter page, collects every `a.list-group-item` into a `string[]` with `allInnerTexts()`, logs the count (13) and each text, then clicks the link whose text is `Forgotten Password` through `page.getByText(linkText).first()`. A second pass with `all()` walks the resulting elements and logs each `href`. Ends with `page.pause()`.
+- **`06_02_ME.spec.ts`** — the same page, but it keeps the `Locator[]` that `.all()` returns and walks that list to log every `href` with `getAttribute()`, instead of going through `allInnerTexts()` first. Ends with `page.pause()`.
+
+**`07_WebTables/`** — reading data out of tables:
+
+- **`07_01_WebTable.spec.ts`** — the starter template copied into the track and left as a placeholder: title `Verify the Testcase`, the `// Code` marker untouched, `page.goto` still pointing at the multi-element-filter URL, and a trailing `page.pause()`. Its header comment records that it was generated from `template/template.spec.ts`.
+- **`07_02_WebTable_example1.spec.ts`** — `https://awesomeqa.com/webtable.html`. Builds each cell's XPath at runtime from three fragments (`//table[@id='customers']/tbody/tr[` + row + `]/td[` + column + `]`), counts rows and columns with `.count()`, walks the whole grid in a nested loop, and when a cell's text includes *Helen Bennett* reads her `following-sibling::td` to print the country she is in.
+- **`07_03_WebTable_example2.spec.ts`** — `https://awesomeqa.com/webtable1.html`. Locates `table[summary="Sample Table"] tbody tr`, counts the rows, and prints each row's cell texts by index with `rows.nth(i).locator('td').allInnerTexts()`. Ends with `page.pause()`.
+
 **`DailyTask/`** — day-to-day practice exercises:
 
 - **`01_159_LoginPage.spec.ts`** — clicks "Make Appointment" on the Katalon Cura demo app, logs in as `John Doe`, and asserts the header on the appointment page.
 - **`02_179_LoginPage.spec.ts`** — logs into the Testing Academy multi-element-filter page with deliberately wrong credentials (CSS `#email` / `#password` locators, XPath for the checkbox and button) and asserts the URL it lands on includes the submitted email, password, and `remember=yes` plus the `#login-success` fragment. Pauses at the end.
+- **`03_259_WebTable.spec.ts`** — opens `https://app.thetestingacademy.com/playwright/webtable` and counts the rows and columns of the table labelled *Employee Management System table*, building the XPath from the same three fragments as `07_02`. The counts are not used yet — the file is still being filled in.
 
-Folders `06_Multiple_Element_Filter/`, `07_WebTables/`, and `08_Web_Select_Frames_IFrame/` are empty placeholders for upcoming tracks. Git does not store empty directories, so they will not show up after a clone until a file lands in each one.
+New specs start from `template/template.spec.ts` at the repo root — a date comment, the `@playwright/test` import, a `test()` whose title is there to replace, `page.goto`, a `// Code` marker, and a trailing `page.pause()`. It sits outside `testDir`, so the runner never collects it; copy it into the relevant numbered track and fill in the title, URL, and steps.
+
+Folder `08_Web_Select_Frames_IFrame/` is still an empty placeholder for an upcoming track. Git does not store empty directories, so that folder will not show up after a clone until a file lands in it.
 
 Example of the style used:
 
@@ -249,7 +270,7 @@ npx playwright test
 
 > **Note** — `02_01_TestAnnotations.spec.ts` currently has an active `test.only('login as man')`. Focus mode is run-wide, so while that line is there a full run executes only that one test (once per browser project) and everything else is skipped. Remove or comment out the `.only` to run the whole suite.
 
-> **Note** — five specs call `page.pause()` at the end, which opens the Inspector and waits for you to resume: `03_03_Fresh.spec.ts`, `03_04_Project3.spec.ts`, `03_05_getByRole.spec.ts`, `03_06_getByRole.spec.ts`, and `DailyTask/02_179_LoginPage.spec.ts`. A full run stops at each one, so comment those lines out (or run the specific file you are working on) when you want a clean pass.
+> **Note** — nine specs call `page.pause()` at the end, which opens the Inspector and waits for you to resume: `03_03_Fresh.spec.ts`, `03_04_Project3.spec.ts`, `03_05_getByRole.spec.ts`, `03_06_getByRole.spec.ts`, `06_01_ME.spec.ts`, `06_02_ME.spec.ts`, `07_01_WebTable.spec.ts`, `07_03_WebTable_example2.spec.ts`, and `DailyTask/02_179_LoginPage.spec.ts`. A full run stops at each one, so comment those lines out (or run the specific file you are working on) when you want a clean pass.
 
 > **Note** — the 04 and 05 specs depend on `user-session.json`, which does not exist until you run `04_01_SessionStorage.ts`. Without it they load an empty state, land on the login page, and fail their URL assertions.
 
@@ -260,7 +281,7 @@ npx playwright test tests/01_Basics/01_01_example.spec.ts
 npx playwright test tests/03_Locator_Commands
 ```
 
-Each spec runs once per browser project, so the collected set is the same tests three times over — `npx playwright test --list` currently reports 111 tests across 18 spec files. To see what would run without launching a browser:
+Each spec runs once per browser project, so the collected set is the same tests three times over — `npx playwright test --list` currently reports 129 tests across 24 spec files. To see what would run without launching a browser:
 
 ```bash
 npx playwright test --list
