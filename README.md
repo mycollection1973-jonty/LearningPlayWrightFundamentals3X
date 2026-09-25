@@ -81,7 +81,7 @@ npm init playwright@latest
 │   └── DailyTask/
 │       ├── 01_159_LoginPage.spec.ts        # Katalon Cura login, asserts the page header
 │       ├── 02_179_LoginPage.spec.ts        # TTA login with bad credentials, asserts the URL
-│       └── 03_259_WebTable.spec.ts         # TTA employee table: row / column counts
+│       └── 03_259_WebTable.spec.ts         # TTA employee table: ticks Rohan.Mehta's checkbox
 ├── utils/
 │   ├── CustomReporter.ts                   # custom TTA HTML reporter (writes tta-report/)
 │   └── selfHeal.ts                         # attachment types for the reporter's Self-Heal tab
@@ -161,7 +161,7 @@ Files ending in `.spec.ts` are picked up automatically from anywhere under `test
 
 - **`01_159_LoginPage.spec.ts`** — clicks "Make Appointment" on the Katalon Cura demo app, logs in as `John Doe`, and asserts the header on the appointment page.
 - **`02_179_LoginPage.spec.ts`** — logs into the Testing Academy multi-element-filter page with deliberately wrong credentials (CSS `#email` / `#password` locators, XPath for the checkbox and button) and asserts the URL it lands on includes the submitted email, password, and `remember=yes` plus the `#login-success` fragment. Pauses at the end.
-- **`03_259_WebTable.spec.ts`** — opens `https://app.thetestingacademy.com/playwright/webtable` and counts the rows and columns of the table labelled *Employee Management System table*, building the XPath from the same three fragments as `07_02`. The counts are not used yet — the file is still being filled in.
+- **`03_259_WebTable.spec.ts`** — opens `https://app.thetestingacademy.com/playwright/webtable` and counts the rows and columns of the table labelled *Employee Management System table*, building the XPath from the same three fragments as `07_02`. Those counts then drive a nested loop that generates each cell's path, reads it with `innerText()`, and logs every cell; when a cell contains *Rohan.Mehta* it clicks that row's checkbox via `preceding-sibling::td`. Ends with `page.pause()` so you can see the tick land.
 
 New specs start from `template/template.spec.ts` at the repo root — a date comment, the `@playwright/test` import, a `test()` whose title is there to replace, `page.goto`, a `// Code` marker, and a trailing `page.pause()`. It sits outside `testDir`, so the runner never collects it; copy it into the relevant numbered track and fill in the title, URL, and steps.
 
@@ -270,7 +270,7 @@ npx playwright test
 
 > **Note** — `02_01_TestAnnotations.spec.ts` currently has an active `test.only('login as man')`. Focus mode is run-wide, so while that line is there a full run executes only that one test (once per browser project) and everything else is skipped. Remove or comment out the `.only` to run the whole suite.
 
-> **Note** — nine specs call `page.pause()` at the end, which opens the Inspector and waits for you to resume: `03_03_Fresh.spec.ts`, `03_04_Project3.spec.ts`, `03_05_getByRole.spec.ts`, `03_06_getByRole.spec.ts`, `06_01_ME.spec.ts`, `06_02_ME.spec.ts`, `07_01_WebTable.spec.ts`, `07_03_WebTable_example2.spec.ts`, and `DailyTask/02_179_LoginPage.spec.ts`. A full run stops at each one, so comment those lines out (or run the specific file you are working on) when you want a clean pass.
+> **Note** — ten specs call `page.pause()` at the end, which opens the Inspector and waits for you to resume: `03_03_Fresh.spec.ts`, `03_04_Project3.spec.ts`, `03_05_getByRole.spec.ts`, `03_06_getByRole.spec.ts`, `06_01_ME.spec.ts`, `06_02_ME.spec.ts`, `07_01_WebTable.spec.ts`, `07_03_WebTable_example2.spec.ts`, `DailyTask/02_179_LoginPage.spec.ts`, and `DailyTask/03_259_WebTable.spec.ts`. A full run stops at each one, so comment those lines out (or run the specific file you are working on) when you want a clean pass.
 
 > **Note** — the 04 and 05 specs depend on `user-session.json`, which does not exist until you run `04_01_SessionStorage.ts`. Without it they load an empty state, land on the login page, and fail their URL assertions.
 
