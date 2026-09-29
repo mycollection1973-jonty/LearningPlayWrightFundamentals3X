@@ -1,6 +1,6 @@
 # Learning Playwright Fundamentals
 
-A project for learning end-to-end testing with [Playwright](https://playwright.dev). The specs live under `tests/` in numbered learning tracks — basics, test annotations, locator commands, saved-session reuse, reporting, multiple-element filtering, and web tables, plus a `DailyTask/` folder for day-to-day practice — built against the Playwright docs site, the Testing Academy and VWO practice apps, the Katalon Cura demo app, the AwesomeQA practice tables, and a few other demo sites. A few standalone scripts also exercise the raw Playwright API (`browser` → `context` → `page`) outside the test runner, and every run feeds three reporters at once: the console `line` reporter, Allure, and a custom TTA HTML reporter in `utils/`.
+A project for learning end-to-end testing with [Playwright](https://playwright.dev). The specs live under `tests/` in numbered learning tracks — basics, test annotations, locator commands, saved-session reuse, reporting, multiple-element filtering, web tables, dropdown select boxes, and frames/iframes, plus a `DailyTask/` folder for day-to-day practice — built against the Playwright docs site, the Testing Academy and VWO practice apps, the Katalon Cura demo app, the AwesomeQA practice tables, SelectorsHub's iframe scenario, the-internet's dropdown page, the OrangeHRM demo, Flipkart, and a few other demo sites. A few standalone scripts also exercise the raw Playwright API (`browser` → `context` → `page`) outside the test runner, and every run feeds three reporters at once: the console `line` reporter, Allure, and a custom TTA HTML reporter in `utils/`.
 
 ## Prerequisites
 
@@ -74,14 +74,28 @@ npm init playwright@latest
 │   │   ├── 06_01_ME.spec.ts                # allInnerTexts + click by text on the filter page
 │   │   └── 06_02_ME.spec.ts                # Locator[] from all(), logging every href
 │   ├── 07_WebTables/
-│   │   ├── 07_01_WebTable.spec.ts          # starter template copied in, not filled in yet
-│   │   ├── 07_02_WebTable_example1.spec.ts # dynamic XPath grid walk, finds Helen Bennett
-│   │   └── 07_03_WebTable_example2.spec.ts # row-by-row cell texts from the sample table
-│   ├── 08_Web_Select_Frames_IFrame/        # reserved
+│   │   ├── 07_01_WebTable.spec.ts           # starter template copied in, not filled in yet
+│   │   ├── 07_02_WebTable_example1.spec.ts  # dynamic XPath grid walk, finds Helen Bennett
+│   │   ├── 07_03_WebTable_example2.spec.ts  # row-by-row cell texts from the sample table
+│   │   ├── 07_04_WebTable_example3.spec.ts  # filter({ hasText }) on a link and a footer link
+│   │   ├── 07_05_WebTable_example4.spec.ts  # :has(td:text(…)) row locator, ticks the checkbox
+│   │   ├── 07_06_WT_Pagination.spec.ts      # Next-clicks until a row is found, reads its cells
+│   │   └── 07_07_WT_Pagination.spec.ts      # same walk extracted into a reusable helper
+│   ├── 08_Web_Select_Frames_IFrame/
+│   │   ├── 08_01_Select.spec.ts             # native <select> driven with selectOption
+│   │   ├── 08_02_Custom.spec.ts             # custom dropdowns: test-id trigger + role option
+│   │   └── 08_03_Advance.spec.ts            # searchable / multi / creatable / async selects
+│   ├── 09_Frame_IFrame/
+│   │   ├── 09_01_IFrame.spec.ts             # fills and submits a form inside a frameLocator
+│   │   ├── 09_02_Multiple_Frame.spec.ts     # lists every <frame>, clicks a link in the side one
+│   │   └── 09_03_Nested_Frame.spec.ts       # three nested frames via contentFrame()
 │   └── DailyTask/
-│       ├── 01_159_LoginPage.spec.ts        # Katalon Cura login, asserts the page header
-│       ├── 02_179_LoginPage.spec.ts        # TTA login with bad credentials, asserts the URL
-│       └── 03_259_WebTable.spec.ts         # TTA employee table: ticks Rohan.Mehta's checkbox
+│       ├── 01_159_LoginPage.spec.ts         # Katalon Cura login, asserts the page header
+│       ├── 02_179_LoginPage.spec.ts         # TTA login with bad credentials, asserts the URL
+│       ├── 03_259_WebTable.spec.ts          # TTA employee table: ticks Rohan.Mehta's checkbox
+│       └── 26/9/
+│           ├── 01_WT_OrangeHRM.spec.ts      # adds an employee in OrangeHRM, then deletes one
+│           └── 02_WT_FLipkart.spec.ts       # Flipkart search results, walked page by page
 ├── utils/
 │   ├── CustomReporter.ts                   # custom TTA HTML reporter (writes tta-report/)
 │   └── selfHeal.ts                         # attachment types for the reporter's Self-Heal tab
@@ -156,6 +170,22 @@ Files ending in `.spec.ts` are picked up automatically from anywhere under `test
 - **`07_01_WebTable.spec.ts`** — the starter template copied into the track and left as a placeholder: title `Verify the Testcase`, the `// Code` marker untouched, `page.goto` still pointing at the multi-element-filter URL, and a trailing `page.pause()`. Its header comment records that it was generated from `template/template.spec.ts`.
 - **`07_02_WebTable_example1.spec.ts`** — `https://awesomeqa.com/webtable.html`. Builds each cell's XPath at runtime from three fragments (`//table[@id='customers']/tbody/tr[` + row + `]/td[` + column + `]`), counts rows and columns with `.count()`, walks the whole grid in a nested loop, and when a cell's text includes *Helen Bennett* reads her `following-sibling::td` to print the country she is in.
 - **`07_03_WebTable_example2.spec.ts`** — `https://awesomeqa.com/webtable1.html`. Locates `table[summary="Sample Table"] tbody tr`, counts the rows, and prints each row's cell texts by index with `rows.nth(i).locator('td').allInnerTexts()`. Ends with `page.pause()`.
+- **`07_04_WebTable_example3.spec.ts`** — despite the track name this one runs on the multi-element-filter page, and it is about `filter()` rather than tables: it clicks the *Forgotten Password* link through `page.locator('a.list-group-item').filter({ hasText: 'Forgotten Password' })`, then resolves the footer's *Privacy Policy* link the same way and asserts its `href` is `#privacy-policy`. Ends with `page.pause()`.
+- **`07_05_WebTable_example4.spec.ts`** — the CSS pseudo-class route to the same checkbox tick as `DailyTask/03`: `page.locator("tr:has(td:text('Rohan.Mehta'))")` narrows the table down to the row containing that cell, and `.locator('input').first()` clicks its checkbox. The commented-out line above it shows the XPath `preceding-sibling::td` equivalent. No `page.pause()` — it waits five seconds instead.
+- **`07_06_WT_Pagination.spec.ts`** — walks the paginated table at `https://app.thetestingacademy.com/playwright/tables/webtable` for *Camila Lopez*: a `while` loop filters `#employees-tbody tr` by `hasText` until the row appears, clicking `getByTestId('next-page')` each time and throwing `Row Not Found!!!` once that button is disabled. Then it reads her email and country cells (`td[data-col='email']` / `td[data-col='country']`). Ends with `page.pause()`.
+- **`07_07_WT_Pagination.spec.ts`** — the same pagination walk refactored into a reusable `findRowByName(page, name)` helper that returns the matching row `Locator`; the test calls it for *Camila Lopez* and reads the email and country cells. (Small bug to notice: the country locator `td[data-col='country` is missing its closing `']`.) Ends with `page.pause()`.
+
+**`08_Web_Select_Frames_IFrame/`** — dropdowns, native and custom:
+
+- **`08_01_Select.spec.ts`** — the-internet's native `<select>` page: clicks `#dropdown` and picks *Option 2* with `page.selectOption('#dropdown', 'Option 2')`. Ends with `page.pause()`.
+- **`08_02_Custom.spec.ts`** — the TTA dropdowns page, where the controls are custom widgets rather than `<select>` elements: opens the language trigger with `getByTestId('lang-trigger')` and clicks the `getByRole('option', { name: 'Javascript' })` item, then opens the experience trigger and picks *Mid-level (4-6 years)* by exact text. Ends with `page.pause()`.
+- **`08_03_Advance.spec.ts`** — the TTA select-boxes page, four flavours of React-Select-style widget: a searchable single select (`#rs-single` → *Cypress*), a multi select with chips (`#rs-multi` → *Pytest* and *JUnit*, closed with `Escape`), a creatable one (`#rs-creatable` → *api-testing* and *security*, confirmed with `Enter`), and an async one (types `de` into `getByTestId('rs-async-input')`, asserts the menu contains *Delhi*, then clicks that option). It ends by logging every option still in the async menu with `allInnerTexts()` and pausing.
+
+**`09_Frame_IFrame/`** — frames and iframes:
+
+- **`09_01_IFrame.spec.ts`** — resolves `#frame-one` with `page.frameLocator()` on the TTA frames page and drives the vehicle-registration form inside it: name, owner, plate, the *SUV* option of the frame's native select, year, and description, then submits with `getByText('Submit registration', { exact: true })` and logs the `#vehicle-output` text. Ends with `page.pause()`.
+- **`09_02_Multiple_Frame.spec.ts`** — the multi-frames page: reads the `<h2>` from the `main` frame through `frameLocator("[name='main']")`, collects every `<frame>` element with `page.locator('//frame').all()` (three of them), and logs each one's `name` and `src` — side, main, footer. Finishes by clicking the registration link inside the `side` frame. Ends with `page.pause()`.
+- **`09_03_Nested_Frame.spec.ts`** — selectorshub.com's iframe-scenario page: wraps the `#pact1` → `#pact2` → `#pact3` frames with `contentFrame()` and fills one input in each (`#inp_val`, `#jex`, `#glaf`), logs the `h3` heading from the first frame, then waits five seconds before `page.pause()`.
 
 **`DailyTask/`** — day-to-day practice exercises:
 
@@ -163,9 +193,12 @@ Files ending in `.spec.ts` are picked up automatically from anywhere under `test
 - **`02_179_LoginPage.spec.ts`** — logs into the Testing Academy multi-element-filter page with deliberately wrong credentials (CSS `#email` / `#password` locators, XPath for the checkbox and button) and asserts the URL it lands on includes the submitted email, password, and `remember=yes` plus the `#login-success` fragment. Pauses at the end.
 - **`03_259_WebTable.spec.ts`** — opens `https://app.thetestingacademy.com/playwright/webtable` and counts the rows and columns of the table labelled *Employee Management System table*, building the XPath from the same three fragments as `07_02`. Those counts then drive a nested loop that generates each cell's path, reads it with `innerText()`, and logs every cell; when a cell contains *Rohan.Mehta* it clicks that row's checkbox via `preceding-sibling::td`. Ends with `page.pause()` so you can see the tick land.
 
-New specs start from `template/template.spec.ts` at the repo root — a date comment, the `@playwright/test` import, a `test()` whose title is there to replace, `page.goto`, a `// Code` marker, and a trailing `page.pause()`. It sits outside `testDir`, so the runner never collects it; copy it into the relevant numbered track and fill in the title, URL, and steps.
+A `26/9/` subfolder holds an extra round of practice from 26-09:
 
-Folder `08_Web_Select_Frames_IFrame/` is still an empty placeholder for an upcoming track. Git does not store empty directories, so that folder will not show up after a clone until a file lands in it.
+- **`01_WT_OrangeHRM.spec.ts`** — the OrangeHRM demo end to end: logs in as `Admin` / `admin123`, opens PIM, adds an employee (*Dev Singh Meena*, id `800014`), switches to the Employee List, searches for *Gopal*, and clicks the matching row's trash icon. A large block of commented-out pagination code sits at the bottom — the loop that pages through the list until the row appears, plus earlier attempts that used `div.oxd-table-card` and the pagination buttons. Ends with `page.pause()`.
+- **`02_WT_FLipkart.spec.ts`** — Flipkart: dismisses the login popup (`//span[@role='button']`), searches *DSLR Camera* through `getByRole('textbox', { name: 'Search for Products, Brands and More' })`, then loops the results pages — on each page it logs every camera name (`div.RG5Slk`) and price (`div.hZ3P6w.DeU9vF`), follows the *Next* link's `href` with `page.goto()`, and stops when there is no Next link or no `href`. Ends with `page.pause()`.
+
+New specs start from `template/template.spec.ts` at the repo root — a date comment, the `@playwright/test` import, a `test()` whose title is there to replace, `page.goto`, a `// Code` marker, and a trailing `page.pause()`. It sits outside `testDir`, so the runner never collects it; copy it into the relevant numbered track and fill in the title, URL, and steps.
 
 Example of the style used:
 
@@ -270,7 +303,7 @@ npx playwright test
 
 > **Note** — `02_01_TestAnnotations.spec.ts` currently has an active `test.only('login as man')`. Focus mode is run-wide, so while that line is there a full run executes only that one test (once per browser project) and everything else is skipped. Remove or comment out the `.only` to run the whole suite.
 
-> **Note** — ten specs call `page.pause()` at the end, which opens the Inspector and waits for you to resume: `03_03_Fresh.spec.ts`, `03_04_Project3.spec.ts`, `03_05_getByRole.spec.ts`, `03_06_getByRole.spec.ts`, `06_01_ME.spec.ts`, `06_02_ME.spec.ts`, `07_01_WebTable.spec.ts`, `07_03_WebTable_example2.spec.ts`, `DailyTask/02_179_LoginPage.spec.ts`, and `DailyTask/03_259_WebTable.spec.ts`. A full run stops at each one, so comment those lines out (or run the specific file you are working on) when you want a clean pass.
+> **Note** — twenty-one specs call `page.pause()` at the end, which opens the Inspector and waits for you to resume: `03_03_Fresh.spec.ts`, `03_04_Project3.spec.ts`, `03_05_getByRole.spec.ts`, `03_06_getByRole.spec.ts`, `06_01_ME.spec.ts`, `06_02_ME.spec.ts`, `07_01_WebTable.spec.ts`, `07_03_WebTable_example2.spec.ts`, `07_04_WebTable_example3.spec.ts`, `07_06_WT_Pagination.spec.ts`, `07_07_WT_Pagination.spec.ts`, all of `08_Web_Select_Frames_IFrame/` and `09_Frame_IFrame/` (six files), and four DailyTask specs (`02_179_LoginPage.spec.ts`, `03_259_WebTable.spec.ts`, `26/9/01_WT_OrangeHRM.spec.ts`, `26/9/02_WT_FLipkart.spec.ts`). A full run stops at each one, so comment those lines out (or run the specific file you are working on) when you want a clean pass.
 
 > **Note** — the 04 and 05 specs depend on `user-session.json`, which does not exist until you run `04_01_SessionStorage.ts`. Without it they load an empty state, land on the login page, and fail their URL assertions.
 
@@ -281,7 +314,7 @@ npx playwright test tests/01_Basics/01_01_example.spec.ts
 npx playwright test tests/03_Locator_Commands
 ```
 
-Each spec runs once per browser project, so the collected set is the same tests three times over — `npx playwright test --list` currently reports 129 tests across 24 spec files. To see what would run without launching a browser:
+Each spec runs once per browser project, so the collected set is the same tests three times over — `npx playwright test --list` currently reports 165 tests across 36 spec files. To see what would run without launching a browser:
 
 ```bash
 npx playwright test --list
