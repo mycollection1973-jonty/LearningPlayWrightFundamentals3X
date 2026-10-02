@@ -22,5 +22,8 @@ node_modules/
 # Saved browser sessions (contain live auth cookies)
 user-session.json
 
+# Screenshots written to the repo root by tests/10_.../10_01_Keyboard.spec.ts
+/*.png
+
 # Command Code internal files
 .commandcode/
