@@ -1,6 +1,6 @@
 # Learning Playwright Fundamentals
 
-A project for learning end-to-end testing with [Playwright](https://playwright.dev). The specs live under `tests/` in numbered learning tracks — basics, test annotations, locator commands, saved-session reuse, reporting, multiple-element filtering, web tables, dropdown select boxes, and frames/iframes, plus a `DailyTask/` folder for day-to-day practice — built against the Playwright docs site, the Testing Academy and VWO practice apps, the Katalon Cura demo app, the AwesomeQA practice tables, SelectorsHub's iframe scenario, the-internet's dropdown page, the OrangeHRM demo, Flipkart, and a few other demo sites. A few standalone scripts also exercise the raw Playwright API (`browser` → `context` → `page`) outside the test runner, and every run feeds three reporters at once: the console `line` reporter, Allure, and a custom TTA HTML reporter in `utils/`.
+A project for learning end-to-end testing with [Playwright](https://playwright.dev). The specs live under `tests/` in numbered learning tracks — basics, test annotations, locator commands, saved-session reuse, reporting, multiple-element filtering, web tables, dropdown select boxes, frames/iframes, keyboard/hover/drag-and-drop, and JavaScript alerts, plus a `DailyTask/` folder for day-to-day practice — built against the Playwright docs site, the Testing Academy and VWO practice apps, the Katalon Cura demo app, the AwesomeQA practice tables, SelectorsHub's iframe scenario, the-internet's dropdown, drag-and-drop and JS-alert pages, keycode.info, SpiceJet, the Applitools demo bank, the OrangeHRM demo, Flipkart, and a few other demo sites. A few standalone scripts also exercise the raw Playwright API (`browser` → `context` → `page`) outside the test runner, and every run feeds three reporters at once: the console `line` reporter, Allure, and a custom TTA HTML reporter in `utils/`.
 
 ## Prerequisites
 
@@ -89,11 +89,23 @@ npm init playwright@latest
 │   │   ├── 09_01_IFrame.spec.ts             # fills and submits a form inside a frameLocator
 │   │   ├── 09_02_Multiple_Frame.spec.ts     # lists every <frame>, clicks a link in the side one
 │   │   └── 09_03_Nested_Frame.spec.ts       # three nested frames via contentFrame()
+│   ├── 10_Keyboard_Hover_Drag_Drop_Calender/
+│   │   ├── 10_01_Keyboard.spec.ts           # keyboard.press on keycode.info, screenshot each hit
+│   │   ├── 10_02_Hover_TC.spec.ts           # hover the Add-ons menu, then click FlyEarly
+│   │   ├── 10_03_Drag&Drop.spec.ts          # dragTo between the two columns on the-internet
+│   │   ├── 10_04_Advance_Drag&Drop.spec.ts  # manual mouse steps onto a Kanban column
+│   │   └── 10_05_Context_Drag_Drop.spec.ts  # right-click a target, then click a menu option
+│   ├── 11_JS_Alerts/
+│   │   └── 11_01_JS_Alert.spec.ts           # dialog handling: alert, confirm and prompt
 │   └── DailyTask/
 │       ├── 01_159_LoginPage.spec.ts         # Katalon Cura login, asserts the page header
 │       ├── 02_179_LoginPage.spec.ts         # TTA login with bad credentials, asserts the URL
 │       ├── 03_259_WebTable.spec.ts          # TTA employee table: ticks Rohan.Mehta's checkbox
-│       └── 26/9/
+│       ├── 04_299_AllLogic.spec.ts          # QA profile form: fills, checks, saves, verifies JSON
+│       ├── 1_Oct/
+│       │   ├── 01_Hover.spec.ts             # hovers the TTA nav, clicks the Wi-Fi menu item
+│       │   └── 02_Applitools.spec.ts        # logs in, sums the amounts column, asserts the net
+│       └── 26/9_Pagination/
 │           ├── 01_WT_OrangeHRM.spec.ts      # adds an employee in OrangeHRM, then deletes one
 │           └── 02_WT_FLipkart.spec.ts       # Flipkart search results, walked page by page
 ├── utils/
@@ -117,8 +129,8 @@ npm init playwright@latest
 `playwright.config.ts` defines:
 
 - **`testDir`** — where your specs live (`./tests`), scanned recursively
-- **`projects`** — which browsers to run: Chromium, Firefox, and WebKit are pre-configured
-- **`use`** — shared options. This project sets `headless: false`, so browsers are visible by default, and `trace: 'on-first-retry'` to capture a trace whenever a test is retried. Individual specs can override this — `05_03` turns screenshots, video, and traces on for every test it runs
+- **`projects`** — which browsers to run: a `chrome` project (desktop Chrome through `channel: 'chrome'` — this launches the Google Chrome installed on the machine, not the bundled Chromium), Firefox, and WebKit are pre-configured
+- **`use`** — shared options. This project sets `headless: false`, so browsers are visible by default, a fixed `1920 × 1080` viewport, and `trace: 'on-first-retry'` to capture a trace whenever a test is retried. Individual specs can override this — `05_03` turns screenshots, video, and traces on for every test it runs
 - **`reporter`** — three reporters run on every run: `line` (terminal output), `allure-playwright` (writes `allure-results/`), and the custom TTA reporter in `utils/CustomReporter.ts` (writes `tta-report/`). Playwright's built-in `html` reporter is not in the list right now, so `playwright-report/` is not refreshed — add `["html"]` back to the array if you want it
 - **`fullyParallel` / `workers` / `retries`** — parallelism and retry behaviour (1 worker and 2 retries only on CI)
 
@@ -187,13 +199,31 @@ Files ending in `.spec.ts` are picked up automatically from anywhere under `test
 - **`09_02_Multiple_Frame.spec.ts`** — the multi-frames page: reads the `<h2>` from the `main` frame through `frameLocator("[name='main']")`, collects every `<frame>` element with `page.locator('//frame').all()` (three of them), and logs each one's `name` and `src` — side, main, footer. Finishes by clicking the registration link inside the `side` frame. Ends with `page.pause()`.
 - **`09_03_Nested_Frame.spec.ts`** — selectorshub.com's iframe-scenario page: wraps the `#pact1` → `#pact2` → `#pact3` frames with `contentFrame()` and fills one input in each (`#inp_val`, `#jex`, `#glaf`), logs the `h3` heading from the first frame, then waits five seconds before `page.pause()`.
 
+**`10_Keyboard_Hover_Drag_Drop_Calender/`** — keyboard, mouse, and drag-and-drop:
+
+- **`10_01_Keyboard.spec.ts`** — `https://keycode.info`: `page.keyboard.press('A')`, then `ArrowLeft`, then `Shift+O` (followed by `keyboard.up('Shift')` / `keyboard.down('Shift')`), taking a screenshot after each press — `A.png`, `ArrowLeft.png`, and `O.png`, written into the repo root and gitignored. Ends with `page.pause()`.
+- **`10_02_Hover_TC.spec.ts`** — SpiceJet: hovers the *Add-ons* menu with `getByText('Add-ons', { exact: true })` and clicks *FlyEarly*, a menu item that only exists while hovering. Ends with `page.pause()`.
+- **`10_03_Drag&Drop.spec.ts`** — the-internet's drag-and-drop page: `page.locator('#column-a').dragTo(page.locator('#column-b'))`. Ends with `page.pause()`.
+- **`10_04_Advance_Drag&Drop.spec.ts`** — TTA's Kanban board (`/playwright/widgets/dnd`): `dragTo()` does not work here because of focus (noted in a comment), so it reads the source card's and the target column's `boundingBox()`es and drives the mouse manually — `mouse.move()` to the card's centre, `mouse.down()`, `mouse.move()` to the column's centre with `{ steps: 10 }`, then `mouse.up()`. Ends with `page.pause()`.
+- **`10_05_Context_Drag_Drop.spec.ts`** — TTA's context-menu page (despite the title, this one is a right-click exercise): right-clicks the first `getByTestId('ctx-target')`, logs every `#ctx-menu span` text with `allInnerTexts()`, then clicks *Copy*. Ends with `page.pause()`.
+
+**`11_JS_Alerts/`** — native browser dialogs:
+
+- **`11_01_JS_Alert.spec.ts`** — the-internet's JavaScript-alerts page, three tests under a `test.describe` with a `beforeEach` navigation: an *alert* accepted after asserting its type and message; a *confirm* accepted, after which `#result` asserts *You clicked: Ok*; and a *prompt* accepted with typed text (*Hello to All of you*), after which `#result` asserts *You entered: …*. Each handler uses `page.once('dialog', …)`; only the first test keeps its trailing `page.pause()`.
+
 **`DailyTask/`** — day-to-day practice exercises:
 
 - **`01_159_LoginPage.spec.ts`** — clicks "Make Appointment" on the Katalon Cura demo app, logs in as `John Doe`, and asserts the header on the appointment page.
 - **`02_179_LoginPage.spec.ts`** — logs into the Testing Academy multi-element-filter page with deliberately wrong credentials (CSS `#email` / `#password` locators, XPath for the checkbox and button) and asserts the URL it lands on includes the submitted email, password, and `remember=yes` plus the `#login-success` fragment. Pauses at the end.
 - **`03_259_WebTable.spec.ts`** — opens `https://app.thetestingacademy.com/playwright/webtable` and counts the rows and columns of the table labelled *Employee Management System table*, building the XPath from the same three fragments as `07_02`. Those counts then drive a nested loop that generates each cell's path, reads it with `innerText()`, and logs every cell; when a cell contains *Rohan.Mehta* it clicks that row's checkbox via `preceding-sibling::td`. Ends with `page.pause()` so you can see the tick land.
+- **`04_299_AllLogic.spec.ts`** — the TTA practice-tables page's "QA profile" form: fills first and last name (`getByTestId`), picks the *Male* radio, sets years of experience with `selectOption`, fills the date field, and selects *Automation Tester* through `locator("[name='profession']").nth(1)`. It then loops every `input[name='tools']` checkbox, checking each and logging its value with `getAttribute()`, checks the first three continents, clicks the *Wait Commands* tab (`getByTestId('tab-wait')`) and *Save profile*, and parses the JSON echoed into `#submission-output` — asserting the name, gender, years, date, and profession fields plus the full `tools` (`["UFT","Protractor","Selenium Webdriver"]`) and `continents` (`["Asia","Europe","Africa"]`) arrays. Ends with `page.pause()`.
 
-A `26/9/` subfolder holds an extra round of practice from 26-09:
+The `1_Oct/` subfolder holds the next session, from 01-10:
+
+- **`01_Hover.spec.ts`** — TTA's hover-menu page: hovers `getByTestId('nav-add-ons')`, clicks the *Wi-Fi* menuitem, reads `div.submission-output`, and asserts it contains *Wi-Fi*. Ends with `page.pause()`.
+- **`02_Applitools.spec.ts`** — the Applitools demo bank: logs in through the placeholder username input, `#password`, and `.btn.btn-primary`, asserts it lands on `app.html`, then counts the transaction table's rows and columns with XPath and collects the amount column (`td[5]`). The strings are stripped of `USD` and commas with chained `.replace()` calls and mapped to numbers; positive and negative amounts are summed separately and the net difference is asserted to be `1996.22`. Ends with `page.pause()`.
+
+A `26/9_Pagination/` subfolder holds an extra round of practice from 26-09 (the folder was renamed from `26/9/` to say what the files are about; the specs themselves are unchanged):
 
 - **`01_WT_OrangeHRM.spec.ts`** — the OrangeHRM demo end to end: logs in as `Admin` / `admin123`, opens PIM, adds an employee (*Dev Singh Meena*, id `800014`), switches to the Employee List, searches for *Gopal*, and clicks the matching row's trash icon. A large block of commented-out pagination code sits at the bottom — the loop that pages through the list until the row appears, plus earlier attempts that used `div.oxd-table-card` and the pagination buttons. Ends with `page.pause()`.
 - **`02_WT_FLipkart.spec.ts`** — Flipkart: dismisses the login popup (`//span[@role='button']`), searches *DSLR Camera* through `getByRole('textbox', { name: 'Search for Products, Brands and More' })`, then loops the results pages — on each page it logs every camera name (`div.RG5Slk`) and price (`div.hZ3P6w.DeU9vF`), follows the *Next* link's `href` with `page.goto()`, and stops when there is no Next link or no `href`. Ends with `page.pause()`.
@@ -303,7 +333,7 @@ npx playwright test
 
 > **Note** — `02_01_TestAnnotations.spec.ts` currently has an active `test.only('login as man')`. Focus mode is run-wide, so while that line is there a full run executes only that one test (once per browser project) and everything else is skipped. Remove or comment out the `.only` to run the whole suite.
 
-> **Note** — twenty-one specs call `page.pause()` at the end, which opens the Inspector and waits for you to resume: `03_03_Fresh.spec.ts`, `03_04_Project3.spec.ts`, `03_05_getByRole.spec.ts`, `03_06_getByRole.spec.ts`, `06_01_ME.spec.ts`, `06_02_ME.spec.ts`, `07_01_WebTable.spec.ts`, `07_03_WebTable_example2.spec.ts`, `07_04_WebTable_example3.spec.ts`, `07_06_WT_Pagination.spec.ts`, `07_07_WT_Pagination.spec.ts`, all of `08_Web_Select_Frames_IFrame/` and `09_Frame_IFrame/` (six files), and four DailyTask specs (`02_179_LoginPage.spec.ts`, `03_259_WebTable.spec.ts`, `26/9/01_WT_OrangeHRM.spec.ts`, `26/9/02_WT_FLipkart.spec.ts`). A full run stops at each one, so comment those lines out (or run the specific file you are working on) when you want a clean pass.
+> **Note** — thirty specs call `page.pause()` at the end, which opens the Inspector and waits for you to resume: `03_03_Fresh.spec.ts`, `03_04_Project3.spec.ts`, `03_05_getByRole.spec.ts`, `03_06_getByRole.spec.ts`, `06_01_ME.spec.ts`, `06_02_ME.spec.ts`, `07_01_WebTable.spec.ts`, `07_03_WebTable_example2.spec.ts`, `07_04_WebTable_example3.spec.ts`, `07_06_WT_Pagination.spec.ts`, `07_07_WT_Pagination.spec.ts`, all of `08_Web_Select_Frames_IFrame/`, `09_Frame_IFrame/`, and `10_Keyboard_Hover_Drag_Drop_Calender/` (eleven files), the first test of `11_01_JS_Alert.spec.ts`, and seven DailyTask specs (`02_179_LoginPage.spec.ts`, `03_259_WebTable.spec.ts`, `04_299_AllLogic.spec.ts`, `1_Oct/01_Hover.spec.ts`, `1_Oct/02_Applitools.spec.ts`, `26/9_Pagination/01_WT_OrangeHRM.spec.ts`, `26/9_Pagination/02_WT_FLipkart.spec.ts`). (`07_05_WebTable_example4.spec.ts` has its pause commented out and waits five seconds instead.) A full run stops at each one, so comment those lines out (or run the specific file you are working on) when you want a clean pass.
 
 > **Note** — the 04 and 05 specs depend on `user-session.json`, which does not exist until you run `04_01_SessionStorage.ts`. Without it they load an empty state, land on the login page, and fail their URL assertions.
 
@@ -314,7 +344,7 @@ npx playwright test tests/01_Basics/01_01_example.spec.ts
 npx playwright test tests/03_Locator_Commands
 ```
 
-Each spec runs once per browser project, so the collected set is the same tests three times over — `npx playwright test --list` currently reports 165 tests across 36 spec files. To see what would run without launching a browser:
+Each spec runs once per browser project, so the collected set is the same tests three times over — `npx playwright test --list` currently reports 198 tests across 45 spec files (46 `.spec.ts` files exist in total; `01_05_BCP.spec.ts` declares no tests). To see what would run without launching a browser:
 
 ```bash
 npx playwright test --list
@@ -323,7 +353,7 @@ npx playwright test --list
 Run only one browser, or force the browser to stay hidden:
 
 ```bash
-npx playwright test --project=chromium
+npx playwright test --project=chrome
 npx playwright test --headless
 ```
 
