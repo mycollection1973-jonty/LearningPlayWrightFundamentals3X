@@ -1,6 +1,7 @@
 // 1-10-2026
 
-import { test, expect, Locator } from '@playwright/test'
+import { test, expect, Locator } from '@playwright/test';
+test.use({ viewport :{ width : 1920, height : 1080}});
 
 test('Verify drag and drop in Kanban board', async({ page }) => {
 
@@ -17,7 +18,7 @@ test('Verify drag and drop in Kanban board', async({ page }) => {
 
     await page.mouse.move(sBox.x + sBox.width / 2, sBox.y + sBox.height / 2);
     await page.mouse.down();
-    await page.mouse.move(tBox.x + tBox.width / 2, tBox.y + tBox.height / 2, { steps: 10 });
+    await page.mouse.move(tBox.x + tBox.width / 2, tBox.y + tBox.height / 2, { steps: 10});
     await page.mouse.up();
 
 

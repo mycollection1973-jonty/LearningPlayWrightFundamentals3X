@@ -25,5 +25,8 @@ user-session.json
 # Screenshots written to the repo root by tests/10_.../10_01_Keyboard.spec.ts
 /*.png
 
+# Downloads written by tests/15_File_Download/15_01_FileDownload_TC.spec.ts
+/out/
+
 # Command Code internal files
 .commandcode/
