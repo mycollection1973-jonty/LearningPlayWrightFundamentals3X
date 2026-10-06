@@ -1,6 +1,6 @@
 # Learning Playwright Fundamentals
 
-A project for learning end-to-end testing with [Playwright](https://playwright.dev). The specs live under `tests/` in numbered learning tracks — basics, test annotations, locator commands, saved-session reuse, reporting, multiple-element filtering, web tables, dropdown select boxes, frames/iframes, keyboard/hover/drag-and-drop, and JavaScript alerts, plus a `DailyTask/` folder for day-to-day practice — built against the Playwright docs site, the Testing Academy and VWO practice apps, the Katalon Cura demo app, the AwesomeQA practice tables, SelectorsHub's iframe scenario, the-internet's dropdown, drag-and-drop and JS-alert pages, keycode.info, SpiceJet, the Applitools demo bank, the OrangeHRM demo, Flipkart, and a few other demo sites. A few standalone scripts also exercise the raw Playwright API (`browser` → `context` → `page`) outside the test runner, and every run feeds three reporters at once: the console `line` reporter, Allure, and a custom TTA HTML reporter in `utils/`.
+A project for learning end-to-end testing with [Playwright](https://playwright.dev). The specs live under `tests/` in numbered learning tracks — basics, test annotations, locator commands, saved-session reuse, reporting, multiple-element filtering, web tables, dropdown select boxes, frames/iframes, keyboard/hover/drag-and-drop, JavaScript alerts, SVG and map interactions, shadow DOM, and file upload/download, plus a `DailyTask/` folder for day-to-day practice — built against the Playwright docs site, the Testing Academy and VWO practice apps, the Katalon Cura demo app, the AwesomeQA practice tables, SelectorsHub's iframe scenario and XPath-practice pages, the-internet's dropdown, drag-and-drop, JS-alert and upload pages, keycode.info, SpiceJet, the Applitools demo bank, the OrangeHRM demo, Flipkart, PatternFly's multi-file-upload component, SimpleMaps' India SVG map, and a few other demo sites. A few standalone scripts also exercise the raw Playwright API (`browser` → `context` → `page`) outside the test runner, and every run feeds three reporters at once: the console `line` reporter, Allure, and a custom TTA HTML reporter in `utils/`.
 
 ## Prerequisites
 
@@ -15,7 +15,7 @@ If you cloned this repo, install the existing dependencies:
 npm install
 ```
 
-That also pulls in the reporting and config packages this project uses: `allure-playwright` and `allure-commandline` (so `npx allure …` works without a global install) and `dotenv`.
+That also pulls in the reporting and config packages this project uses: `allure-playwright` and `allure-commandline` (so `npx allure …` works without a global install) and `dotenv`. (`package.json` also lists a `path` package; nothing imports it — the specs use Node's built-in `path` module.)
 
 Then install the browser binaries needed to run tests:
 
@@ -44,6 +44,7 @@ npm init playwright@latest
 ├── .env.example                            # template for VWO_USER / VWO_PASS (copy to .env)
 ├── user-session.json                       # saved login cookies used by the 04/05 tracks (gitignored)
 ├── template/template.spec.ts               # starter template for new specs (outside testDir)
+├── testdata/                               # shared upload fixtures used by 14_06 (sample.pdf / .jpg / .docx)
 ├── tests/
 │   ├── 01_Basics/
 │   │   ├── 01_01_example.spec.ts           # title assertions against playwright.dev
@@ -97,6 +98,25 @@ npm init playwright@latest
 │   │   └── 10_05_Context_Drag_Drop.spec.ts  # right-click a target, then click a menu option
 │   ├── 11_JS_Alerts/
 │   │   └── 11_01_JS_Alert.spec.ts           # dialog handling: alert, confirm and prompt
+│   ├── 12_Handle_SVG/
+│   │   ├── 12_01_SVG_TC.spec.ts             # Flipkart: click the SVG icon, log product titles
+│   │   ├── 12_02_Advance_SVG_TC.spec.ts     # TTA widget: circle, chart bars, star rating
+│   │   ├── 12_03_Map_TC.spec.ts             # SimpleMaps India: click the UP state path
+│   │   └── 12_04_Map_TC_Optimize.spec.ts    # same map, compact walk over every path
+│   ├── 13_Shadow_DOM/
+│   │   └── 13_01_Shadow_DOM_TC.spec.ts      # TTA widget: locators pierce the shadow roots
+│   ├── 14_FileUpload/
+│   │   ├── 14_01_FileUpload_TC.spec.ts      # the-internet upload of testdata.txt
+│   │   ├── 14_02_FileUpload_TC.spec.ts      # TTA widget: single-upload input
+│   │   ├── 14_03_Multiple_FileUpload_TC.spec.ts        # two in-memory buffers into PatternFly
+│   │   ├── 14_04_Multiple_FileUpload_Disk_TC.spec.ts   # real jpegs from disk + dropzone asserts
+│   │   ├── 14_05_Mixed_FileUpload_TC.spec.ts           # pdf + jpg + docx from this folder
+│   │   ├── 14_06_Mixed_FileUpload_OtherDir_TC.spec.ts  # same, from the root testdata/ folder
+│   │   ├── file1.jpeg / file2.jpeg          # Playwright icon cards uploaded by 14_04
+│   │   ├── sample.pdf / sample.jpg / sample.docx       # mixed fixtures for 14_05 (copies in testdata/)
+│   │   └── testdata.txt                     # small text file for 14_01 / 14_02
+│   ├── 15_File_Download/
+│   │   └── 15_01_FileDownload_TC.spec.ts    # waitForEvent('download') → saveAs into out/
 │   └── DailyTask/
 │       ├── 01_159_LoginPage.spec.ts         # Katalon Cura login, asserts the page header
 │       ├── 02_179_LoginPage.spec.ts         # TTA login with bad credentials, asserts the URL
@@ -105,9 +125,12 @@ npm init playwright@latest
 │       ├── 1_Oct/
 │       │   ├── 01_Hover.spec.ts             # hovers the TTA nav, clicks the Wi-Fi menu item
 │       │   └── 02_Applitools.spec.ts        # logs in, sums the amounts column, asserts the net
-│       └── 26/9_Pagination/
-│           ├── 01_WT_OrangeHRM.spec.ts      # adds an employee in OrangeHRM, then deletes one
-│           └── 02_WT_FLipkart.spec.ts       # Flipkart search results, walked page by page
+│       ├── 26/9_Pagination/
+│       │   ├── 01_WT_OrangeHRM.spec.ts      # adds an employee in OrangeHRM, then deletes one
+│       │   └── 02_WT_FLipkart.spec.ts       # Flipkart search results, walked page by page
+│       └── 6_Oct/
+│           ├── 01_ShadowDOM.spec.ts         # SelectorsHub XPath practice: shadow-root fields
+│           └── 02_UploadProfile.spec.ts     # TTA student dashboard: fill the email step
 ├── utils/
 │   ├── CustomReporter.ts                   # custom TTA HTML reporter (writes tta-report/)
 │   └── selfHeal.ts                         # attachment types for the reporter's Self-Heal tab
@@ -121,6 +144,7 @@ npm init playwright@latest
 ├── tta-report/                             # custom reporter output + media (gitignored)
 ├── reports/runs/                           # per-build status snapshots (gitignored)
 ├── allure-results/                         # raw Allure results (gitignored)
+├── out/                                    # downloads written by 15_01 (gitignored)
 └── test-results/                           # per-run artifacts and traces (gitignored)
 ```
 
@@ -204,12 +228,37 @@ Files ending in `.spec.ts` are picked up automatically from anywhere under `test
 - **`10_01_Keyboard.spec.ts`** — `https://keycode.info`: `page.keyboard.press('A')`, then `ArrowLeft`, then `Shift+O` (followed by `keyboard.up('Shift')` / `keyboard.down('Shift')`), taking a screenshot after each press — `A.png`, `ArrowLeft.png`, and `O.png`, written into the repo root and gitignored. Ends with `page.pause()`.
 - **`10_02_Hover_TC.spec.ts`** — SpiceJet: hovers the *Add-ons* menu with `getByText('Add-ons', { exact: true })` and clicks *FlyEarly*, a menu item that only exists while hovering. Ends with `page.pause()`.
 - **`10_03_Drag&Drop.spec.ts`** — the-internet's drag-and-drop page: `page.locator('#column-a').dragTo(page.locator('#column-b'))`. Ends with `page.pause()`.
-- **`10_04_Advance_Drag&Drop.spec.ts`** — TTA's Kanban board (`/playwright/widgets/dnd`): `dragTo()` does not work here because of focus (noted in a comment), so it reads the source card's and the target column's `boundingBox()`es and drives the mouse manually — `mouse.move()` to the card's centre, `mouse.down()`, `mouse.move()` to the column's centre with `{ steps: 10 }`, then `mouse.up()`. Ends with `page.pause()`.
+- **`10_04_Advance_Drag&Drop.spec.ts`** — TTA's Kanban board (`/playwright/widgets/dnd`): `dragTo()` does not work here because of focus (noted in a comment), so it reads the source card's and the target column's `boundingBox()`es and drives the mouse manually — `mouse.move()` to the card's centre, `mouse.down()`, `mouse.move()` to the column's centre with `{ steps: 10 }`, then `mouse.up()`. The file also pins the same `1920 × 1080` viewport explicitly with `test.use({ viewport: { width: 1920, height: 1080 } })` at the top. Ends with `page.pause()`.
 - **`10_05_Context_Drag_Drop.spec.ts`** — TTA's context-menu page (despite the title, this one is a right-click exercise): right-clicks the first `getByTestId('ctx-target')`, logs every `#ctx-menu span` text with `allInnerTexts()`, then clicks *Copy*. Ends with `page.pause()`.
 
 **`11_JS_Alerts/`** — native browser dialogs:
 
 - **`11_01_JS_Alert.spec.ts`** — the-internet's JavaScript-alerts page, three tests under a `test.describe` with a `beforeEach` navigation: an *alert* accepted after asserting its type and message; a *confirm* accepted, after which `#result` asserts *You clicked: Ok*; and a *prompt* accepted with typed text (*Hello to All of you*), after which `#result` asserts *You entered: …*. Each handler uses `page.once('dialog', …)`; only the first test keeps its trailing `page.pause()`.
+
+**`12_Handle_SVG/`** — SVG elements, widgets, and maps:
+
+- **`12_01_SVG_TC.spec.ts`** — Flipkart again, this time as the SVG exercise: fills the search box (`input[name='q']`) with *macmini*, clicks the first `svg` on the page (the search icon), waits for `networkidle` because the result tiles lazily load, then loops the product-title locator (`//div[contains(@data-id,'MP') or … or 'CPU']/div/a[2]`) and logs every title. Ends with `page.pause()`.
+- **`12_02_Advance_SVG_TC.spec.ts`** — TTA's `widgets/svg` playground: clicks the `#circle-blue` shape and asserts `#shapes-output` contains *Blue circle*, clicks the chart button matched by `/Q3 bar/` — a `getByRole` name given as a RegExp means "contains" — picks the *4 stars* radio, then walks every `.bar` element and logs its `data-quarter` and `data-value` attributes. Ends with `page.pause()`.
+- **`12_03_Map_TC.spec.ts`** — SimpleMaps' India map: collects the state `path` elements under the map SVG with a `name()` XPath (`//*[name()='svg']/*[name()='path' and contains(@class,'sm_state')]`), logs each `class`, and clicks the path whose class includes *INUP* (Uttar Pradesh). Ends with `page.pause()`.
+- **`12_04_Map_TC_Optimize.spec.ts`** — the same map with a shorter selector: walks *every* `path` on the page, logs each non-null class, and clicks the one whose class **ends with** `UP` — no XPath, no `name()` needed. Ends with `page.pause()`.
+
+**`13_Shadow_DOM/`** — elements behind shadow roots:
+
+- **`13_01_Shadow_DOM_TC.spec.ts`** — TTA's shadow-DOM widget. Playwright locators pierce open shadow roots automatically, so ordinary locators drive the custom elements: it scopes to `getByTestId('card-account-card')`, fills the email and password inside it, submits, and asserts `card-account-status` contains the email; clicks `counter-cart`'s *Increment* twice, asserting `counter-value` reads `5`; then fills the nested card through its own `card-inside-*` test ids and submits. Ends with `page.pause()`.
+
+**`14_FileUpload/`** — feeding files to inputs, as buffers and from disk:
+
+- **`14_01_FileUpload_TC.spec.ts`** — the-internet's upload page: passes `testdata.txt` to `setInputFiles` using `path.join(__dirname, 'testdata.txt')`, clicks *Upload*, and asserts `#uploaded-files` contains the filename. The one 14-file without a pause — it asserts instead.
+- **`14_02_FileUpload_TC.spec.ts`** — TTA's `widgets/upload-download` page: the same text file into `#single-upload`. Ends with `page.pause()`.
+- **`14_03_Multiple_FileUpload_TC.spec.ts`** — PatternFly's multiple-file-upload component with two *in-memory* files: `{ name, mimeType, buffer }` objects built around `Buffer.from(...)`, so nothing has to exist on disk. Ends with `page.pause()`.
+- **`14_04_Multiple_FileUpload_Disk_TC.spec.ts`** — the same component with *real files from disk*: `file1.jpeg` and `file2.jpeg` live next to the spec and go in as paths, and the dropzone is then asserted to list `file1.jpg` / `file2.jpg` — a substring match that also passes for *file1.jpeg*. Ends with `page.pause()`.
+- **`14_05_Mixed_FileUpload_TC.spec.ts`** — a mixed three-file set from the spec's own folder: `sample.pdf`, `sample.jpg`, and `sample.docx`. A commented-out block below shows the same upload with dropzone assertions. Ends with `page.pause()`.
+- **`14_06_Mixed_FileUpload_OtherDir_TC.spec.ts`** — the same three files, but from the shared `testdata/` folder at the repo root (`path.join(__dirname, '..', '..', 'testdata', …)`) — the pattern to use when fixtures should not sit next to the spec. Ends with `page.pause()`.
+- The folder's fixtures: **`testdata.txt`** for 14_01/14_02; **`file1.jpeg`** / **`file2.jpeg`** (Playwright icon cards) for 14_04; **`sample.pdf`** (a minimal but valid PDF), **`sample.jpg`** (another icon card), and **`sample.docx`** (a minimal Word document) for 14_05, with copies in `testdata/` for 14_06. All of these are located with Node's built-in `path` module — the `path` package listed in `package.json` is not what gets imported.
+
+**`15_File_Download/`** — downloads:
+
+- **`15_01_FileDownload_TC.spec.ts`** — TTA's upload-download widget: clicks `getByTestId('download-static')` inside a `Promise.all` together with `page.waitForEvent('download')`, then saves the artifact with `download.saveAs('./out/' + download.suggestedFilename())`. Downloads land in `out/` at the repo root, which is gitignored. Ends with `page.pause()`.
 
 **`DailyTask/`** — day-to-day practice exercises:
 
@@ -227,6 +276,11 @@ A `26/9_Pagination/` subfolder holds an extra round of practice from 26-09 (the 
 
 - **`01_WT_OrangeHRM.spec.ts`** — the OrangeHRM demo end to end: logs in as `Admin` / `admin123`, opens PIM, adds an employee (*Dev Singh Meena*, id `800014`), switches to the Employee List, searches for *Gopal*, and clicks the matching row's trash icon. A large block of commented-out pagination code sits at the bottom — the loop that pages through the list until the row appears, plus earlier attempts that used `div.oxd-table-card` and the pagination buttons. Ends with `page.pause()`.
 - **`02_WT_FLipkart.spec.ts`** — Flipkart: dismisses the login popup (`//span[@role='button']`), searches *DSLR Camera* through `getByRole('textbox', { name: 'Search for Products, Brands and More' })`, then loops the results pages — on each page it logs every camera name (`div.RG5Slk`) and price (`div.hZ3P6w.DeU9vF`), follows the *Next* link's `href` with `page.goto()`, and stops when there is no Next link or no `href`. Ends with `page.pause()`.
+
+A `6_Oct/` subfolder holds the 06-10 session:
+
+- **`01_ShadowDOM.spec.ts`** — SelectorsHub's XPath-practice page, aiming at its shadow-root widget: scopes to `#userName`, fills the *enter name* field with *Dominoz* and *Enter pizza name* with *cheese*, then presses `Tab` three times and types a password, relying on Playwright reaching straight through the shadow boundaries. Ends with `page.pause()`.
+- **`02_UploadProfile.spec.ts`** — TTA's student dashboard: fills the email field (`getByPlaceholder('Enter your email address')`) and clicks the exact *Continue* button — the email step of the sign-in flow. Ends with `page.pause()`.
 
 New specs start from `template/template.spec.ts` at the repo root — a date comment, the `@playwright/test` import, a `test()` whose title is there to replace, `page.goto`, a `// Code` marker, and a trailing `page.pause()`. It sits outside `testDir`, so the runner never collects it; copy it into the relevant numbered track and fill in the title, URL, and steps.
 
@@ -333,7 +387,7 @@ npx playwright test
 
 > **Note** — `02_01_TestAnnotations.spec.ts` currently has an active `test.only('login as man')`. Focus mode is run-wide, so while that line is there a full run executes only that one test (once per browser project) and everything else is skipped. Remove or comment out the `.only` to run the whole suite.
 
-> **Note** — thirty specs call `page.pause()` at the end, which opens the Inspector and waits for you to resume: `03_03_Fresh.spec.ts`, `03_04_Project3.spec.ts`, `03_05_getByRole.spec.ts`, `03_06_getByRole.spec.ts`, `06_01_ME.spec.ts`, `06_02_ME.spec.ts`, `07_01_WebTable.spec.ts`, `07_03_WebTable_example2.spec.ts`, `07_04_WebTable_example3.spec.ts`, `07_06_WT_Pagination.spec.ts`, `07_07_WT_Pagination.spec.ts`, all of `08_Web_Select_Frames_IFrame/`, `09_Frame_IFrame/`, and `10_Keyboard_Hover_Drag_Drop_Calender/` (eleven files), the first test of `11_01_JS_Alert.spec.ts`, and seven DailyTask specs (`02_179_LoginPage.spec.ts`, `03_259_WebTable.spec.ts`, `04_299_AllLogic.spec.ts`, `1_Oct/01_Hover.spec.ts`, `1_Oct/02_Applitools.spec.ts`, `26/9_Pagination/01_WT_OrangeHRM.spec.ts`, `26/9_Pagination/02_WT_FLipkart.spec.ts`). (`07_05_WebTable_example4.spec.ts` has its pause commented out and waits five seconds instead.) A full run stops at each one, so comment those lines out (or run the specific file you are working on) when you want a clean pass.
+> **Note** — forty-three specs call `page.pause()` at the end, which opens the Inspector and waits for you to resume: `03_03_Fresh.spec.ts`, `03_04_Project3.spec.ts`, `03_05_getByRole.spec.ts`, `03_06_getByRole.spec.ts`, `06_01_ME.spec.ts`, `06_02_ME.spec.ts`, `07_01_WebTable.spec.ts`, `07_03_WebTable_example2.spec.ts`, `07_04_WebTable_example3.spec.ts`, `07_06_WT_Pagination.spec.ts`, `07_07_WT_Pagination.spec.ts`, all of `08_Web_Select_Frames_IFrame/`, `09_Frame_IFrame/`, `10_Keyboard_Hover_Drag_Drop_Calender/`, and `12_Handle_SVG/` (fifteen files), the first test of `11_01_JS_Alert.spec.ts`, `13_01_Shadow_DOM_TC.spec.ts`, five of the six `14_FileUpload/` specs (`14_01` asserts instead), `15_01_FileDownload_TC.spec.ts`, and nine DailyTask specs (`02_179_LoginPage.spec.ts`, `03_259_WebTable.spec.ts`, `04_299_AllLogic.spec.ts`, `1_Oct/01_Hover.spec.ts`, `1_Oct/02_Applitools.spec.ts`, `26/9_Pagination/01_WT_OrangeHRM.spec.ts`, `26/9_Pagination/02_WT_FLipkart.spec.ts`, `6_Oct/01_ShadowDOM.spec.ts`, `6_Oct/02_UploadProfile.spec.ts`). (`07_05_WebTable_example4.spec.ts` has its pause commented out and waits five seconds instead.) A full run stops at each one, so comment those lines out (or run the specific file you are working on) when you want a clean pass.
 
 > **Note** — the 04 and 05 specs depend on `user-session.json`, which does not exist until you run `04_01_SessionStorage.ts`. Without it they load an empty state, land on the login page, and fail their URL assertions.
 
@@ -344,7 +398,7 @@ npx playwright test tests/01_Basics/01_01_example.spec.ts
 npx playwright test tests/03_Locator_Commands
 ```
 
-Each spec runs once per browser project, so the collected set is the same tests three times over — `npx playwright test --list` currently reports 198 tests across 45 spec files (46 `.spec.ts` files exist in total; `01_05_BCP.spec.ts` declares no tests). To see what would run without launching a browser:
+Each spec runs once per browser project, so the collected set is the same tests three times over — `npx playwright test --list` currently reports 240 tests across 59 spec files (60 `.spec.ts` files exist in total; `01_05_BCP.spec.ts` declares no tests). To see what would run without launching a browser:
 
 ```bash
 npx playwright test --list
