@@ -1,6 +1,6 @@
 # Learning Playwright Fundamentals
 
-A project for learning end-to-end testing with [Playwright](https://playwright.dev). The specs live under `tests/` in numbered learning tracks — basics, test annotations, locator commands, saved-session reuse, reporting, multiple-element filtering, web tables, dropdown select boxes, frames/iframes, keyboard/hover/drag-and-drop, JavaScript alerts, SVG and map interactions, shadow DOM, and file upload/download, plus a `DailyTask/` folder for day-to-day practice — built against the Playwright docs site, the Testing Academy and VWO practice apps, the Katalon Cura demo app, the AwesomeQA practice tables, SelectorsHub's iframe scenario and XPath-practice pages, the-internet's dropdown, drag-and-drop, JS-alert and upload pages, keycode.info, SpiceJet, the Applitools demo bank, the OrangeHRM demo, Flipkart, PatternFly's multi-file-upload component, SimpleMaps' India SVG map, and a few other demo sites. A few standalone scripts also exercise the raw Playwright API (`browser` → `context` → `page`) outside the test runner, and every run feeds three reporters at once: the console `line` reporter, Allure, and a custom TTA HTML reporter in `utils/`.
+A project for learning end-to-end testing with [Playwright](https://playwright.dev). The specs live under `tests/` in numbered learning tracks — basics, test annotations, locator commands, saved-session reuse, reporting, multiple-element filtering, web tables, dropdown select boxes, frames/iframes, keyboard/hover/drag-and-drop, JavaScript alerts, SVG and map interactions, shadow DOM, file upload/download, scrolling, expect assertions, and test hooks, plus a `DailyTask/` folder for day-to-day practice — built against the Playwright docs site, the Testing Academy and VWO practice apps, the Katalon Cura demo app, the AwesomeQA practice tables, SelectorsHub's iframe scenario and XPath-practice pages, the-internet's dropdown, drag-and-drop, JS-alert and upload pages, keycode.info, SpiceJet, the Applitools demo bank, the OrangeHRM demo, Flipkart, PatternFly's multi-file-upload component, SimpleMaps' India SVG map, and a few other demo sites. A few standalone scripts also exercise the raw Playwright API (`browser` → `context` → `page`) outside the test runner, and every run feeds three reporters at once: the console `line` reporter, Allure, and a custom TTA HTML reporter in `utils/`.
 
 ## Prerequisites
 
@@ -117,6 +117,24 @@ npm init playwright@latest
 │   │   └── testdata.txt                     # small text file for 14_01 / 14_02
 │   ├── 15_File_Download/
 │   │   └── 15_01_FileDownload_TC.spec.ts    # waitForEvent('download') → saveAs into out/
+│   ├── 16_Scroll_ToElement/
+│   │   ├── 16_01_Scroll_TC.spec.ts          # scrollIntoViewIfNeeded + scrollTo jumps, with pause
+│   │   ├── 16_02_Lazy_Scroll_TC.spec.ts     # lazy list loads 10 → expect.poll until more arrive
+│   │   └── 16_03_Abort_Signal_Scroll_TC.spec.ts        # AbortSignal cancels the scroll wait (v1.62+)
+│   ├── 17_Expect_Assertions/
+│   │   ├── 17_01_Expect1.spec.ts            # value assertions: toBe/toEqual/toBeTruthy, …
+│   │   ├── 17_02_Expect2.spec.ts            # locator assertions, and 16 footer links
+│   │   ├── 17_03_Expect3.spec.ts            # expect.soft block + .not negation
+│   │   ├── 17_04_Expect4.spec.ts            # visible / enabled / checked / toHaveTitle
+│   │   └── Expect_Cheatsheet.md             # every common expect assertion, one example each
+│   ├── 18_Test_Hooks/
+│   │   ├── 18_01_Test.spec.ts               # test.skip / slow / fixme / fail modifiers
+│   │   ├── 18_02_Test.spec.ts               # test.step named steps
+│   │   ├── 18_03_Testhook.spec.ts           # beforeAll/beforeEach/afterEach/afterAll
+│   │   ├── 18_04_TestDescibe.spec.ts        # describe.serial vs parallel standalones
+│   │   ├── 18_05_TestPriority.spec.ts       # @p1/@p2/@p3 tags, grep filtering
+│   │   ├── TestHooks_Cheatsheet.md          # test API cheat sheet
+│   │   └── Chromium_Arguments_List.md       # Chrome launch-args reference
 │   └── DailyTask/
 │       ├── 01_159_LoginPage.spec.ts         # Katalon Cura login, asserts the page header
 │       ├── 02_179_LoginPage.spec.ts         # TTA login with bad credentials, asserts the URL
@@ -260,6 +278,30 @@ Files ending in `.spec.ts` are picked up automatically from anywhere under `test
 
 - **`15_01_FileDownload_TC.spec.ts`** — TTA's upload-download widget: clicks `getByTestId('download-static')` inside a `Promise.all` together with `page.waitForEvent('download')`, then saves the artifact with `download.saveAs('./out/' + download.suggestedFilename())`. Downloads land in `out/` at the repo root, which is gitignored. Ends with `page.pause()`.
 
+**`16_Scroll_ToElement/`** — scrolling, lazy lists, and cancellable waits:
+
+- **`16_01_Scroll_TC.spec.ts`** — TTA's `widgets/scroll` page, opened in a `beforeEach`. The body collects four numbered approaches and leaves the last two live: `getByTestId('deep-anchor').scrollIntoViewIfNeeded()` then a click, `window.scrollBy(0, 1000)`, `window.scrollTo(0, document.body.scrollHeight)` to jump to the bottom, and `window.scrollTo(0, 0)` to jump back to the top. Ends with `page.pause()`.
+- **`16_02_Lazy_Scroll_TC.spec.ts`** — the same page's lazy list: scrolls `section-lazy` and `lazy-list` into view and waits for the first load to land with `await expect(list).toHaveCount(10)` *before* reading the count — read too early, the count is 0 and the poll below would pass without any scroll at all. Back at the top it scrolls `lazy-loader` into view, then `expect.poll` over `list.count()` (message `"expected_items > 10"`, 10-second timeout) asserts the list grew past the initial count, logs the final count, and waits five seconds. No pause.
+- **`16_03_Abort_Signal_Scroll_TC.spec.ts`** — two tests. The first scrolls to the list and then calls `list.last().scrollIntoViewIfNeeded({ signal })` with an `AbortController` that aborts after 500 ms — the *last existing* item, because `nth(10)` does not exist yet and would just time out — then polls for the count to grow as in 16_02. The second sets a hidden button, aborts after 500 ms, and asserts the scroll call `rejects.toThrow('aborted')`: the signal cancels the auto-wait instead of letting it run to the timeout. No pause in either test.
+
+**`17_Expect_Assertions/`** — the assertion API, with a cheatsheet:
+
+- **`17_01_Expect1.spec.ts`** — pure value assertions (no locators): `toBe`, `toBeFalsy`, `toBeTruthy`, `toBeNull`, `toBeGreaterThan`, `toEqual` for arrays, and `toEqual` for two objects written with different key order — deep equality ignores property order.
+- **`17_02_Expect2.spec.ts`** — locator assertions against the multi-element-filter page: the heading `toBeVisible()` and `toContainText('filter', { timeout: 10000 })`; the email textbox checked twice with `toHaveAttribute('id', 'email')` plus one check against a `'palcaeholder'` attribute (misspelled, so nothing matches); and `toHaveCount(16)` on the footer links.
+- **`17_03_Expect3.spec.ts`** — soft assertions and negation on the practice-tables page: three `expect.soft` checks on the first-name field (attribute, visibility, empty value) record their own failures and let the test continue, a hard `toBeEnabled()` still runs afterwards, then `#error` is asserted `not.toBeVisible()` and the page title `not` to contain *error*.
+- **`17_04_Expect4.spec.ts`** — state assertions: ticks the UFT checkbox and asserts `toBeChecked()`, checks the submit button with `toBeVisible()` / `toBeEnabled()`, then `toHaveTitle(/QA Profile/)` and that the URL contains *thetestingacademy*. Ends with `page.pause()`.
+- **`Expect_Cheatsheet.md`** — a formatted interview cheatsheet of `expect`: value assertions, locator assertions, page assertions, API-response `toBeOK`, the `.not` / `expect.soft` / `expect.poll` / `expect.toPass` / `expect.configure` modifiers, and a common-question table.
+
+**`18_Test_Hooks/`** — the `test` API: modifiers, steps, hooks, serial suites, and tags, plus two reference docs:
+
+- **`18_01_Test.spec.ts`** — four tests on the multi-element-filter page, one per modifier: a conditional `test.skip(browserName === 'firefox', …)` in the title test (whose `toHaveTitle` gets a 15-second timeout), a conditional `test.slow(browserName === 'firefox', …)` on the email test, a `test.fixme` for the password test, and a `test.fail()` on a test expecting a *New customer area* that does not exist yet.
+- **`18_02_Test.spec.ts`** — the same page driven through three named `await test.step(...)` blocks — *open practice page*, *fields are visible*, *submit+assert validation* (clicks Login and expects the /required|invalid/ text) — so the report shows them as sub-steps rather than one flat test.
+- **`18_03_Testhook.spec.ts`** — the full hook set: `beforeAll` logs *beforeAll - server is up*, `beforeEach` opens the TTA practice index, two tests check it (`.index-card` `toHaveCount(47)`, and the sidebar collapse — `getByLabel('Toggle sidebar').first().click()` then `.tta-shell` carries `data-sidebar-collapsed="true"`), an `afterEach` saves a full-page screenshot to `out/fail-<title>.png` only when the test's status differs from its expected one, and `afterAll` logs teardown.
+- **`18_04_TestDescibe.spec.ts`** — `test.describe.serial('Checkout suite - must run in order')` holds four console-logging tests that must run in order, while the two top-level tests *standalone A* and *standalone B* sit outside the group and run in parallel.
+- **`18_05_TestPriority.spec.ts`** — eight tests that all just navigate to `app.vwo.com`; the point is naming and selection: TC01/TC02, a *Priority 1–3* trio, then three tests tagged `@p1 @smoke`, `@p2`, and `@p3`, with a comment showing `npx playwright test --grep @p1`. The `test.describe.configure({ mode: 'serial' })` line between the groups switches the file's tests to run one after another instead of in parallel.
+- **`TestHooks_Cheatsheet.md`** — a cheatsheet of the `test` API: test functions and modifiers, suite variants, the four hooks and their execution order, fixtures/metadata, conditional modifiers, `test.info()` properties, and a `test.step` example.
+- **`Chromium_Arguments_List.md`** — a reference of the Chrome/Chromium command-line switches that matter in automation (window/display, headless, CI/Docker, profiles, security, network, media, locale, debugging, feature flags), where to set them in Playwright, and a table of *use the Playwright option instead* mappings.
+
 **`DailyTask/`** — day-to-day practice exercises:
 
 - **`01_159_LoginPage.spec.ts`** — clicks "Make Appointment" on the Katalon Cura demo app, logs in as `John Doe`, and asserts the header on the appointment page.
@@ -387,7 +429,7 @@ npx playwright test
 
 > **Note** — `02_01_TestAnnotations.spec.ts` currently has an active `test.only('login as man')`. Focus mode is run-wide, so while that line is there a full run executes only that one test (once per browser project) and everything else is skipped. Remove or comment out the `.only` to run the whole suite.
 
-> **Note** — forty-three specs call `page.pause()` at the end, which opens the Inspector and waits for you to resume: `03_03_Fresh.spec.ts`, `03_04_Project3.spec.ts`, `03_05_getByRole.spec.ts`, `03_06_getByRole.spec.ts`, `06_01_ME.spec.ts`, `06_02_ME.spec.ts`, `07_01_WebTable.spec.ts`, `07_03_WebTable_example2.spec.ts`, `07_04_WebTable_example3.spec.ts`, `07_06_WT_Pagination.spec.ts`, `07_07_WT_Pagination.spec.ts`, all of `08_Web_Select_Frames_IFrame/`, `09_Frame_IFrame/`, `10_Keyboard_Hover_Drag_Drop_Calender/`, and `12_Handle_SVG/` (fifteen files), the first test of `11_01_JS_Alert.spec.ts`, `13_01_Shadow_DOM_TC.spec.ts`, five of the six `14_FileUpload/` specs (`14_01` asserts instead), `15_01_FileDownload_TC.spec.ts`, and nine DailyTask specs (`02_179_LoginPage.spec.ts`, `03_259_WebTable.spec.ts`, `04_299_AllLogic.spec.ts`, `1_Oct/01_Hover.spec.ts`, `1_Oct/02_Applitools.spec.ts`, `26/9_Pagination/01_WT_OrangeHRM.spec.ts`, `26/9_Pagination/02_WT_FLipkart.spec.ts`, `6_Oct/01_ShadowDOM.spec.ts`, `6_Oct/02_UploadProfile.spec.ts`). (`07_05_WebTable_example4.spec.ts` has its pause commented out and waits five seconds instead.) A full run stops at each one, so comment those lines out (or run the specific file you are working on) when you want a clean pass.
+> **Note** — forty-five specs call `page.pause()` at the end, which opens the Inspector and waits for you to resume: `03_03_Fresh.spec.ts`, `03_04_Project3.spec.ts`, `03_05_getByRole.spec.ts`, `03_06_getByRole.spec.ts`, `06_01_ME.spec.ts`, `06_02_ME.spec.ts`, `07_01_WebTable.spec.ts`, `07_03_WebTable_example2.spec.ts`, `07_04_WebTable_example3.spec.ts`, `07_06_WT_Pagination.spec.ts`, `07_07_WT_Pagination.spec.ts`, all of `08_Web_Select_Frames_IFrame/`, `09_Frame_IFrame/`, `10_Keyboard_Hover_Drag_Drop_Calender/`, and `12_Handle_SVG/` (fifteen files), the first test of `11_01_JS_Alert.spec.ts`, `13_01_Shadow_DOM_TC.spec.ts`, five of the six `14_FileUpload/` specs (`14_01` asserts instead), `15_01_FileDownload_TC.spec.ts`, `16_01_Scroll_TC.spec.ts`, `17_04_Expect4.spec.ts`, and nine DailyTask specs (`02_179_LoginPage.spec.ts`, `03_259_WebTable.spec.ts`, `04_299_AllLogic.spec.ts`, `1_Oct/01_Hover.spec.ts`, `1_Oct/02_Applitools.spec.ts`, `26/9_Pagination/01_WT_OrangeHRM.spec.ts`, `26/9_Pagination/02_WT_FLipkart.spec.ts`, `6_Oct/01_ShadowDOM.spec.ts`, `6_Oct/02_UploadProfile.spec.ts`). (`07_05_WebTable_example4.spec.ts` has its pause commented out and waits five seconds instead.) A full run stops at each one, so comment those lines out (or run the specific file you are working on) when you want a clean pass.
 
 > **Note** — the 04 and 05 specs depend on `user-session.json`, which does not exist until you run `04_01_SessionStorage.ts`. Without it they load an empty state, land on the login page, and fail their URL assertions.
 
@@ -398,7 +440,7 @@ npx playwright test tests/01_Basics/01_01_example.spec.ts
 npx playwright test tests/03_Locator_Commands
 ```
 
-Each spec runs once per browser project, so the collected set is the same tests three times over — `npx playwright test --list` currently reports 240 tests across 59 spec files (60 `.spec.ts` files exist in total; `01_05_BCP.spec.ts` declares no tests). To see what would run without launching a browser:
+Each spec runs once per browser project, so the collected set is the same tests three times over — `npx playwright test --list` currently reports 327 tests across 71 spec files (72 `.spec.ts` files exist in total; `01_05_BCP.spec.ts` declares no tests). To see what would run without launching a browser:
 
 ```bash
 npx playwright test --list
