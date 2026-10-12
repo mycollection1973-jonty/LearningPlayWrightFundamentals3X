@@ -13,7 +13,7 @@ test('3 soft assertions & Negation', async({ page}) => {
     await expect.soft(firstName).toHaveValue('');
     
      // Hard
-         // Final hard assertion still runs after the soft block.
+    // Final hard assertion still runs after the soft block.
     await expect(firstName).toBeEnabled();
     // this line will not be executed if the above line is fails)
     await page.goto('https://app.thetestingacademy.com/playwright/webtable.html');

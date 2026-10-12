@@ -16,7 +16,7 @@ test.describe('Scroll the element', () => {
 
         const email = page.getByRole('textbox', { name : 'Email Address'});
         await expect(email).toHaveAttribute('id','email');
-        await expect(email).toHaveAttribute('id','email');
+        await expect(email).toHaveAttribute('type','email');
         await expect(email).toHaveAttribute('palcaeholder','student@thetestingacademy.com');
 
         const footerlinks = page.locator('footer a');
