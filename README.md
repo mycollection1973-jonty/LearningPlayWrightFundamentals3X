@@ -1,10 +1,10 @@
 # Learning Playwright Fundamentals
 
-A project for learning end-to-end testing with [Playwright](https://playwright.dev). The specs live under `tests/` in numbered learning tracks — basics, test annotations, locator commands, saved-session reuse, reporting, multiple-element filtering, web tables, dropdown select boxes, frames/iframes, keyboard/hover/drag-and-drop, JavaScript alerts, SVG and map interactions, shadow DOM, file upload/download, scrolling, expect assertions, and test hooks, plus a `DailyTask/` folder for day-to-day practice — built against the Playwright docs site, the Testing Academy and VWO practice apps, the Katalon Cura demo app, the AwesomeQA practice tables, SelectorsHub's iframe scenario and XPath-practice pages, the-internet's dropdown, drag-and-drop, JS-alert and upload pages, keycode.info, SpiceJet, the Applitools demo bank, the OrangeHRM demo, Flipkart, PatternFly's multi-file-upload component, SimpleMaps' India SVG map, and a few other demo sites. A few standalone scripts also exercise the raw Playwright API (`browser` → `context` → `page`) outside the test runner, and every run feeds three reporters at once: the console `line` reporter, Allure, and a custom TTA HTML reporter in `utils/`.
+A project for learning end-to-end testing with [Playwright](https://playwright.dev). The specs live under `tests/` in numbered learning tracks — basics, test annotations, locator commands, saved-session reuse, reporting, multiple-element filtering, web tables, dropdown select boxes, frames/iframes, keyboard/hover/drag-and-drop, JavaScript alerts, SVG and map interactions, shadow DOM, file upload/download, scrolling, expect assertions, test hooks, and data-driven testing over JSON, CSV, Excel, YAML, MySQL and faker-generated data, plus a `DailyTask/` folder for day-to-day practice — built against the Playwright docs site, the Testing Academy and VWO practice apps, the Katalon Cura demo app, the AwesomeQA practice tables, SelectorsHub's iframe scenario and XPath-practice pages, the-internet's dropdown, drag-and-drop, JS-alert and upload pages, keycode.info, SpiceJet, the Applitools demo bank, the OrangeHRM demo, Flipkart, PatternFly's multi-file-upload component, SimpleMaps' India SVG map, and a few other demo sites. A few standalone scripts also exercise the raw Playwright API (`browser` → `context` → `page`) outside the test runner, and every run feeds three reporters at once: the console `line` reporter, Allure, and a custom TTA HTML reporter in `utils/`.
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org) (16 or newer, LTS recommended — the standalone scripts are run through `tsx`, which `npx` fetches on demand)
+- [Node.js](https://nodejs.org) (16 or newer, LTS recommended — the standalone scripts are run through `tsx`, which is installed as a devDependency)
 - npm (comes with Node.js)
 
 ## Installation
@@ -15,7 +15,7 @@ If you cloned this repo, install the existing dependencies:
 npm install
 ```
 
-That also pulls in the reporting and config packages this project uses: `allure-playwright` and `allure-commandline` (so `npx allure …` works without a global install) and `dotenv`. (`package.json` also lists a `path` package; nothing imports it — the specs use Node's built-in `path` module.)
+That also pulls in the reporting and config packages this project uses: `allure-playwright` and `allure-commandline` (so `npx allure …` works without a global install), `dotenv`, the data-driven track's readers — `exceljs`, `mysql2`, `js-yaml` with `@types/js-yaml`, and `@faker-js/faker` — plus `tsx` and `typescript`: `tsx` runs the standalone scripts and `npx tsc --noEmit` typechecks the whole repo against the root `tsconfig.json`. (`package.json` also lists a `path` package; nothing imports it — the specs use Node's built-in `path` module.)
 
 Then install the browser binaries needed to run tests:
 
@@ -41,7 +41,8 @@ npm init playwright@latest
 .
 ├── playwright.config.ts                    # test runner configuration
 ├── package.json                            # dependencies
-├── .env.example                            # template for VWO_USER / VWO_PASS (copy to .env)
+├── tsconfig.json                           # strict root TS config for `npx tsc --noEmit`
+├── .env.example                            # template for VWO_USER / VWO_PASS and MYSQL_* (copy to .env)
 ├── user-session.json                       # saved login cookies used by the 04/05 tracks (gitignored)
 ├── template/template.spec.ts               # starter template for new specs (outside testDir)
 ├── testdata/                               # shared upload fixtures used by 14_06 (sample.pdf / .jpg / .docx)
@@ -135,6 +136,33 @@ npm init playwright@latest
 │   │   ├── 18_05_TestPriority.spec.ts       # @p1/@p2/@p3 tags, grep filtering
 │   │   ├── TestHooks_Cheatsheet.md          # test API cheat sheet
 │   │   └── Chromium_Arguments_List.md       # Chrome launch-args reference
+│   ├── 19_Data_Driven_Testing/
+│   │   ├── 19_01_DDT.spec.ts                # imports 19_02_Users.json, logs the fields
+│   │   ├── 19_02_Users.json                 # tiny data object: username / password
+│   │   ├── 19_03_TestData.json              # richer object: nested address + skills array
+│   │   ├── 19_04_Login_DDT.spec.ts          # login spec driven by test-data/login.json
+│   │   ├── 19_05_Read_Write_FS.ts           # standalone script: fs read + JSON write
+│   │   ├── 19_06_DDT_JSON_ARRAY.spec.ts     # inline JSON array, one test() per row
+│   │   ├── 19_07_DDT_CSV.spec.ts            # same rows from CSV, asserts the landing URL
+│   │   ├── 19_08_JSON_DDT.spec.ts           # registration rows from a JSON file
+│   │   ├── 19_09_DDT_EXCEL.spec.ts          # async exceljs read -> beforeAll + test.step per row
+│   │   ├── 19_10_DDT_YAML.spec.ts           # sync js-yaml read -> one test() per row
+│   │   ├── 19_11_DDT_MYSQL.spec.ts          # async mysql2 read, skipped without MYSQL_HOST
+│   │   ├── 19_12_Faker.spec.ts              # five seeded faker-generated users
+│   │   ├── output.json                      # written by 19_05 when it runs
+│   │   ├── util/
+│   │   │   ├── csvReader.ts                 # comma-splitting CSV reader (sync)
+│   │   │   ├── yamlReader.ts                # js-yaml loader + the shared LoginRow type (sync)
+│   │   │   ├── excelReader.ts               # exceljs workbook -> LoginRow[] (async)
+│   │   │   ├── dbReader.ts                  # mysql2 connection + login_data query (async)
+│   │   │   └── generateExcel.ts             # regenerates test-data/login-data.xlsx
+│   │   └── test-data/
+│   │       ├── login.json                   # valid / invalid user for 19_04
+│   │       ├── login-data.csv               # seven login rows for 19_07
+│   │       ├── login-data.xlsx              # the same rows for 19_09
+│   │       ├── login-data.yaml              # the same rows for 19_10
+│   │       ├── registration-data.json       # five registration rows for 19_08
+│   │       └── seed.sql                     # MySQL schema + the same rows (+ one inactive)
 │   └── DailyTask/
 │       ├── 01_159_LoginPage.spec.ts         # Katalon Cura login, asserts the page header
 │       ├── 02_179_LoginPage.spec.ts         # TTA login with bad credentials, asserts the URL
@@ -175,6 +203,7 @@ npm init playwright@latest
 - **`projects`** — which browsers to run: a `chrome` project (desktop Chrome through `channel: 'chrome'` — this launches the Google Chrome installed on the machine, not the bundled Chromium), Firefox, and WebKit are pre-configured
 - **`use`** — shared options. This project sets `headless: false`, so browsers are visible by default, a fixed `1920 × 1080` viewport, and `trace: 'on-first-retry'` to capture a trace whenever a test is retried. Individual specs can override this — `05_03` turns screenshots, video, and traces on for every test it runs
 - **`reporter`** — three reporters run on every run: `line` (terminal output), `allure-playwright` (writes `allure-results/`), and the custom TTA reporter in `utils/CustomReporter.ts` (writes `tta-report/`). Playwright's built-in `html` reporter is not in the list right now, so `playwright-report/` is not refreshed — add `["html"]` back to the array if you want it
+- **`dotenv`** — loads `.env` with `quiet: true` before anything else, so `VWO_*` and `MYSQL_*` are available in `process.env` for every spec and hook, not just for `04_01`
 - **`fullyParallel` / `workers` / `retries`** — parallelism and retry behaviour (1 worker and 2 retries only on CI)
 
 ## Tests in this repo
@@ -303,6 +332,20 @@ Files ending in `.spec.ts` are picked up automatically from anywhere under `test
 - **`TestHooks_Cheatsheet.md`** — a cheatsheet of the `test` API: test functions and modifiers, suite variants, the four hooks and their execution order, fixtures/metadata, conditional modifiers, `test.info()` properties, and a `test.step` example.
 - **`Chromium_Arguments_List.md`** — a reference of the Chrome/Chromium command-line switches that matter in automation (window/display, headless, CI/Docker, profiles, security, network, media, locale, debugging, feature flags), where to set them in Playwright, and a table of *use the Playwright option instead* mappings.
 
+**`19_Data_Driven_Testing/`** — the same login scenario fed by every data source, plus faker:
+
+- **`19_01_DDT.spec.ts`** — the simplest import path: `19_02_Users.json` is pulled in with a plain `import` (TypeScript's `resolveJsonModule` does the parsing) and the test just logs `username` and `password`. No browser, no assertions — it shows that JSON data arrives as an ordinary JS object.
+- **`19_04_Login_DDT.spec.ts`** — two tests under a `test.describe` with a `beforeEach` navigation: `test-data/login.json` holds a `validUser` and an `invalidUser`, and each test fills `#email` / `#password` and clicks `getByTestId('login-button')`. Minimal assertions on purpose — the point here is the file-based data, not the login itself.
+- **`19_06_DDT_JSON_ARRAY.spec.ts`** — the classic inline lesson: an array of five objects (`valid credentials` … `both empty`, with `expectedURL` and `shouldPass` fields) is walked by a `for` loop, each row producing a `Login with : <description>` test that fills and clicks. The data lives in the file rather than in a JSON import, so you can see the loop transform rows into tests.
+- **`19_07_DDT_CSV.spec.ts`** — the same idea with the data moved out to CSV: `util/csvReader.ts` (a deliberately minimal comma-splitting reader) loads `test-data/login-data.csv` at collection time and each of the seven rows drives `goto` → fill → click → `expect(page).toHaveURL(url => url.href.includes(data.expectedURL))`. A note on the page under test: the practice login is a plain GET form, so every submit lands on `…/multiple_element_filter?email=…#login-success` regardless of credentials, while the browser's own `type=email` validation blocks the SQL-injection row before it ever submits — which is why its `expectedURL` is just the page path.
+- **`19_08_JSON_DDT.spec.ts`** — the JSON-file twin of 19_06 for a registration form: five rows from `test-data/registration-data.json` (with `confirmPassword` and `expectedError` fields) each become a test, under a `beforeEach` + `afterEach` pair whose `testInfo.status` logging shows hook ordering. The per-row assertions are left commented out as an exercise.
+- **`19_09_DDT_EXCEL.spec.ts`** — Excel: `exceljs` is asynchronous and Playwright collects tests synchronously, so the seven rows from `test-data/login-data.xlsx` are loaded in `beforeAll` and replayed as one `test.step()` per row inside a single test — each step still shows up separately in the report. Regenerate the workbook with `npx tsx tests/19_Data_Driven_Testing/util/generateExcel.ts`.
+- **`19_10_DDT_YAML.spec.ts`** — YAML: `js-yaml` is synchronous, so `readYAML` runs at module load and every row becomes its own test, with its own report entry and retry — the closest match to 19_07 among the file-based readers. It also asserts that `shouldPass` came through as a real boolean.
+- **`19_11_DDT_MYSQL.spec.ts`** — MySQL: `mysql2/promise` reads `login_data` filtered with `WHERE is_active = 1` and maps the snake_case columns to the shared `LoginRow` shape. The suite skips itself unless `MYSQL_HOST` is set, so a normal run reports it as skipped. Seed the table with `mysql -u root -p < tests/19_Data_Driven_Testing/test-data/seed.sql`.
+- **`19_12_Faker.spec.ts`** — faker: five users built at load time with `faker.helpers.multiple()` and a fixed `faker.seed(42)`. The seed is not decoration — Playwright re-evaluates the file in the worker, and without it the freshly generated titles never match the collected ones, so every test fails with *Test not found in the worker process*.
+- **`util/`** — the four readers (`csvReader`, `yamlReader`, `excelReader`, `dbReader`) and the `LoginRow` type they all produce, plus `generateExcel.ts` which regenerates the workbook. Compare them side by side: CSV and YAML are synchronous (data ready at collection time, one `test()` per row), while Excel and MySQL are async (rows arrive in a hook and are replayed as steps).
+- **`test-data/`** — one dataset in every format: `login-data.csv`, `login-data.xlsx`, `login-data.yaml` and `seed.sql` all carry the same seven login rows (plus a retired, `is_active = 0` row that only the MySQL seed has), `registration-data.json` holds the five registration rows for 19_08, and `login.json` the valid/invalid pair for 19_04. The track is a comparison of readers, not of data.
+
 **`DailyTask/`** — day-to-day practice exercises:
 
 - **`01_159_LoginPage.spec.ts`** — clicks "Make Appointment" on the Katalon Cura demo app, logs in as `John Doe`, and asserts the header on the appointment page.
@@ -343,12 +386,14 @@ test('viewer', async ({ page }) => {
 
 ### Standalone scripts (not tests)
 
-Four files are plain scripts, not `test()` specs: three under `tests/01_Basics/` and one under `tests/04_Session_Storage/`. They import from `playwright` (the library) rather than `@playwright/test` (the runner), so they are executed directly instead of being run as tests:
+Six files are plain scripts, not `test()` specs: three under `tests/01_Basics/`, one under `tests/04_Session_Storage/`, and two under `tests/19_Data_Driven_Testing/`. Most import from `playwright` (the library) rather than `@playwright/test` (the runner), so they are executed directly instead of being run as tests; the two data-track scripts never open a browser at all, they only read and write files:
 
 - **`01_03_normal_pw.ts`** — launches Chromium, creates a context and a page, goes to `https://example.com`, logs the page title, then closes page → context → browser in that order.
 - **`01_04_multiple_context.ts`** — launches a single browser and opens two independent contexts, one for an admin user and one for a viewer, each with its own page and session. This is the pattern to reach for whenever a test needs more than one logged-in user at a time.
 - **`01_05_BCP.spec.ts`** — the same browser → context → page walkthrough with comments at each level and the matching teardown. Despite the `.spec.ts` name it declares no tests, so the runner collects nothing from it; rename it to `.ts` if you would rather keep it out of collection entirely.
-- **`04_01_SessionStorage.ts`** — the session saver described above; it reads credentials from `.env` and writes `user-session.json` for the 04 and 05 tracks.
+- **`04_01_SessionStorage.ts`** — the session saver described above; it reads credentials from `.env` and writes `user-session.json` for the 04 and 05 tracks, and fails fast with a clear error when `VWO_USER` / `VWO_PASS` are missing.
+- **`19_05_Read_Write_FS.ts`** — reading and writing JSON without a browser: it loads `19_02_Users.json` with `readFileSync` + `JSON.parse` (path built from `__dirname`, so the read works from anywhere) and writes `output.json` with `writeFileSync`. The write path is relative to the working directory, so run it from inside `tests/19_Data_Driven_Testing/` to keep the file next to the spec.
+- **`util/generateExcel.ts`** — regenerates `test-data/login-data.xlsx` from the same seven rows the CSV and YAML fixtures carry, written in CommonJS `require` style with an async IIFE.
 
 Run them with a TypeScript runner:
 
@@ -357,17 +402,26 @@ npx tsx tests/01_Basics/01_03_normal_pw.ts
 npx tsx tests/01_Basics/01_04_multiple_context.ts
 npx tsx tests/01_Basics/01_05_BCP.spec.ts
 npx tsx tests/04_Session_Storage/04_01_SessionStorage.ts
+cd tests/19_Data_Driven_Testing && npx tsx 19_05_Read_Write_FS.ts   # keeps output.json in the folder
+npx tsx tests/19_Data_Driven_Testing/util/generateExcel.ts
 ```
 
 Running `node tests/01_Basics/01_03_normal_pw.ts` directly does not work here: `package.json` sets `"type": "commonjs"`, so Node treats `.ts` files as CommonJS TS and rejects the ESM `import` statements with `SyntaxError: Cannot use import statement outside a module`. A runner such as `tsx` handles the TypeScript and the module interop for you.
 
 ## Environment variables
 
-`.env.example` holds the template for the credentials the session script needs:
+`.env.example` holds the template for the credentials and connection details the suite can use:
 
 ```text
 VWO_USER=
 VWO_PASS=
+
+# optional — enables the 19_11 MySQL suite
+MYSQL_HOST=
+MYSQL_PORT=3306
+MYSQL_USER=root
+MYSQL_PASSWORD=
+MYSQL_DATABASE=playwright_ddt
 ```
 
 Copy it to `.env` and fill in your own account:
@@ -376,7 +430,7 @@ Copy it to `.env` and fill in your own account:
 cp .env.example .env       # Windows: copy .env.example .env
 ```
 
-`.env` is read by `dotenv` in `04_01_SessionStorage.ts`, and it is gitignored — only the empty template is committed. Never hardcode credentials in a spec, since this repo is public.
+`.env` is loaded by `dotenv` in `playwright.config.ts` (so every spec sees the variables) and read directly in `04_01_SessionStorage.ts`. The `MYSQL_*` values are optional: `19_11` skips itself while `MYSQL_HOST` is empty, and the seed for the `playwright_ddt` schema lives in `tests/19_Data_Driven_Testing/test-data/seed.sql`. `.env` is gitignored — only the empty template is committed. Never hardcode credentials in a spec, since this repo is public.
 
 ## Saved login sessions
 
@@ -442,7 +496,7 @@ npx playwright test tests/01_Basics/01_01_example.spec.ts
 npx playwright test tests/03_Locator_Commands
 ```
 
-Each spec runs once per browser project, so the collected set is the same tests three times over — `npx playwright test --list` currently reports 330 tests across 72 spec files (73 `.spec.ts` files exist in total; `01_05_BCP.spec.ts` declares no tests). To see what would run without launching a browser:
+Each spec runs once per browser project, so the collected set is the same tests three times over — `npx playwright test --list` currently reports 432 tests across 81 spec files (82 `.spec.ts` files exist in total; `01_05_BCP.spec.ts` declares no tests). Note that the file count is a head count of specs, while the test count multiplies by the three browser projects: 144 tests per browser, 34 of them in the data-driven track. To see what would run without launching a browser:
 
 ```bash
 npx playwright test --list
