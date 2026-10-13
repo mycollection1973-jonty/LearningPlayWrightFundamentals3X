@@ -14,6 +14,10 @@ dotenv.config();
 const VWO_USER = process.env.VWO_USER;
 const VWO_PASS = process.env.VWO_PASS;
 
+if (!VWO_USER || !VWO_PASS) {
+    throw new Error('VWO_USER and VWO_PASS must be set in .env');
+}
+
 async function saveSession(){
     // 9r2l98q6ct@fpklm.com
     // Testtta@1234
@@ -23,8 +27,8 @@ async function saveSession(){
 
     await page.goto("https://app.vwo.com/#/login");
 
-    await page.fill("#login-username", VWO_USER);
-    await page.fill("#login-password", VWO_PASS);
+    await page.fill("#login-username", VWO_USER!);
+    await page.fill("#login-password", VWO_PASS!);
 
     await page.click("#js-login-btn");
     await page.waitForURL(/#\/(dashboard|home)/, { timeout : 15000 });
