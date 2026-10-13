@@ -1,0 +1,8 @@
+description,username,password,shouldPass,expectedError,expectedURL
+valid credentials,admin@gamil.com,admin123,true,,#login-success
+invalid password,admin@gamil.com,wrongpass,false,Invalid credentials,#login-success
+empty username,,admin123@gamil.com,false,Username is required,#login-success
+empty password,admin@gamil.com,,false,Password is required,#login-success
+locked account,locked_user@gamil.com,pass123,false,Account is locked,#login-success
+special chars,admin@gamil.com,p@$$w0rd!,true,,#login-success
+SQL injection,admin' OR '1'='1,password,false,Invalid credentials,multiple_element_filter

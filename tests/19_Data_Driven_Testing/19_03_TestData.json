@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Rohit",
+    "experience": 6,
+    "isTrainer": false,
+    "middleName": "",
+    "skills": [
+      "JavaScript",
+      "Playwright",
+      "Selenium"
+    ],
+    "address": {
+      "city": "Delhi",
+      "country": "India"
+    }
+  }
+]
