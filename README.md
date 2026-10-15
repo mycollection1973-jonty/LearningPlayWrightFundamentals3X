@@ -1,6 +1,6 @@
 # Learning Playwright Fundamentals
 
-A project for learning end-to-end testing with [Playwright](https://playwright.dev). The specs live under `tests/` in numbered learning tracks — basics, test annotations, locator commands, saved-session reuse, reporting, multiple-element filtering, web tables, dropdown select boxes, frames/iframes, keyboard/hover/drag-and-drop, JavaScript alerts, SVG and map interactions, shadow DOM, file upload/download, scrolling, expect assertions, test hooks, and data-driven testing over JSON, CSV, Excel, YAML, MySQL and faker-generated data, plus a `DailyTask/` folder for day-to-day practice — built against the Playwright docs site, the Testing Academy and VWO practice apps, the Katalon Cura demo app, the AwesomeQA practice tables, SelectorsHub's iframe scenario and XPath-practice pages, the-internet's dropdown, drag-and-drop, JS-alert and upload pages, keycode.info, SpiceJet, the Applitools demo bank, the OrangeHRM demo, Flipkart, PatternFly's multi-file-upload component, SimpleMaps' India SVG map, and a few other demo sites. A few standalone scripts also exercise the raw Playwright API (`browser` → `context` → `page`) outside the test runner, and every run feeds three reporters at once: the console `line` reporter, Allure, and a custom TTA HTML reporter in `utils/`.
+A project for learning end-to-end testing with [Playwright](https://playwright.dev). The specs live under `tests/` in numbered learning tracks — basics, test annotations, locator commands, saved-session reuse, reporting, multiple-element filtering, web tables, dropdown select boxes, frames/iframes, keyboard/hover/drag-and-drop, JavaScript alerts, SVG and map interactions, shadow DOM, file upload/download, scrolling, expect assertions, test hooks, data-driven testing over JSON, CSV, Excel, YAML, MySQL and faker-generated data, and the page object model, plus a `DailyTask/` folder for day-to-day practice — built against the Playwright docs site, the Testing Academy and VWO practice apps, the Katalon Cura demo app, the AwesomeQA practice tables, SelectorsHub's iframe scenario and XPath-practice pages, the-internet's dropdown, drag-and-drop, JS-alert and upload pages, keycode.info, SpiceJet, the Applitools demo bank, the OrangeHRM demo, Flipkart, PatternFly's multi-file-upload component, SimpleMaps' India SVG map, and a few other demo sites. A few standalone scripts also exercise the raw Playwright API (`browser` → `context` → `page`) outside the test runner, and every run feeds three reporters at once: the console `line` reporter, Allure, and a custom TTA HTML reporter in `utils/`.
 
 ## Prerequisites
 
@@ -163,6 +163,16 @@ npm init playwright@latest
 │   │       ├── login-data.yaml              # the same rows for 19_10
 │   │       ├── registration-data.json       # five registration rows for 19_08
 │   │       └── seed.sql                     # MySQL schema + the same rows (+ one inactive)
+│   ├── 20_Page_Object_Model/
+│   │   ├── 20_01_No_POM.spec.ts             # the login flow written inline, no page objects
+│   │   ├── 20_02_POM.spec.ts                # the same login boxed into LoginPage
+│   │   ├── 20_03_cart_add_assertion.spec.ts # POM cart flow: login -> add item -> cart
+│   │   ├── 20_04_Heavy_Page.spec.ts         # the same flow driven by HeavyPages
+│   │   └── pages/
+│   │       ├── LoginPage.ts                 # TTACart login page object (SnapLocator)
+│   │       ├── InventoryPage.ts             # TTACart inventory page object (SnapLocator)
+│   │       ├── CartPage.ts                  # TTACart cart page object (SnapLocator)
+│   │       └── HeavyPages.ts                # 100 locators + 100 methods, scale sample
 │   └── DailyTask/
 │       ├── 01_159_LoginPage.spec.ts         # Katalon Cura login, asserts the page header
 │       ├── 02_179_LoginPage.spec.ts         # TTA login with bad credentials, asserts the URL
@@ -200,8 +210,8 @@ npm init playwright@latest
 `playwright.config.ts` defines:
 
 - **`testDir`** — where your specs live (`./tests`), scanned recursively
-- **`projects`** — which browsers to run: a `chrome` project (desktop Chrome through `channel: 'chrome'` — this launches the Google Chrome installed on the machine, not the bundled Chromium), Firefox, and WebKit are pre-configured
-- **`use`** — shared options. This project sets `headless: false`, so browsers are visible by default, a fixed `1920 × 1080` viewport, and `trace: 'on-first-retry'` to capture a trace whenever a test is retried. Individual specs can override this — `05_03` turns screenshots, video, and traces on for every test it runs
+- **`projects`** — which browsers to run. Only the `chrome` project is active right now — a desktop Chrome through `channel: 'chrome'`, which launches the Google Chrome installed on the machine, not the bundled Chromium. The firefox and webkit projects are still in the file but commented out, so a run collects each test once instead of three times
+- **`use`** — shared options. This project sets `headless: false`, so browsers are visible by default, a fixed `1920 × 1080` viewport, `screenshot: 'on'` and `video: 'on'` so every test produces media for the reports, and `trace: 'on-first-retry'` to capture a trace whenever a test is retried. Individual specs can override this — `05_03` turns screenshots, video, and traces on for every test it runs
 - **`reporter`** — three reporters run on every run: `line` (terminal output), `allure-playwright` (writes `allure-results/`), and the custom TTA reporter in `utils/CustomReporter.ts` (writes `tta-report/`). Playwright's built-in `html` reporter is not in the list right now, so `playwright-report/` is not refreshed — add `["html"]` back to the array if you want it
 - **`dotenv`** — loads `.env` with `quiet: true` before anything else, so `VWO_*` and `MYSQL_*` are available in `process.env` for every spec and hook, not just for `04_01`
 - **`fullyParallel` / `workers` / `retries`** — parallelism and retry behaviour (1 worker and 2 retries only on CI)
@@ -345,6 +355,14 @@ Files ending in `.spec.ts` are picked up automatically from anywhere under `test
 - **`19_12_Faker.spec.ts`** — faker: five users built at load time with `faker.helpers.multiple()` and a fixed `faker.seed(42)`. The seed is not decoration — Playwright re-evaluates the file in the worker, and without it the freshly generated titles never match the collected ones, so every test fails with *Test not found in the worker process*.
 - **`util/`** — the four readers (`csvReader`, `yamlReader`, `excelReader`, `dbReader`) and the `LoginRow` type they all produce, plus `generateExcel.ts` which regenerates the workbook. Compare them side by side: CSV and YAML are synchronous (data ready at collection time, one `test()` per row), while Excel and MySQL are async (rows arrive in a hook and are replayed as steps).
 - **`test-data/`** — one dataset in every format: `login-data.csv`, `login-data.xlsx`, `login-data.yaml` and `seed.sql` all carry the same seven login rows (plus a retired, `is_active = 0` row that only the MySQL seed has), `registration-data.json` holds the five registration rows for 19_08, and `login.json` the valid/invalid pair for 19_04. The track is a comparison of readers, not of data.
+
+**`20_Page_Object_Model/`** — the page object model, on the TTACart shop:
+
+- **`20_01_No_POM.spec.ts`** — the baseline to compare everything against: the multi-element-filter login written inline (a data object, three locators, fill → fill → click) and closed with `expect(page).toHaveURL(data.expectedURL)` where `expectedURL` is `/admin/` — a regex that only matches because the typed email lands in the query string.
+- **`20_02_POM.spec.ts`** — the same login with the moving parts boxed into `LoginPage`: `new LoginPage(page)`, `goto()`, `login('standard_user', 'tta-secret')`, then a title assertion. Small thing to notice: the app's password is `tta_secret` (underscore) and this spec passes `tta-secret` (hyphen), so the app shows *"Epic sadface: Username and password do not match any user in this service"* and the test asserts the title of the login page it never leaves.
+- **`20_03_cart_add_assertion.spec.ts`** — the first complete POM flow, in three `test.step`s: log in with `LoginPage`, add the first item with `Inventorypage`, open the cart and verify the item with `Cartpage` (asserting the `/cart` URL and the item name). Each step attaches a screenshot named `step-N-…` — that prefix is how the custom reporter binds the image, and each step's video segment, to its step in the report.
+- **`20_04_Heavy_Page.spec.ts`** — the same three steps, but every interaction goes through `pages/HeavyPages.ts` (`locator001` fills the username, `locator004` adds the item, `locator006` opens the cart, `locator016` proves the T-shirt is on the cart page). Two facts this flow makes you learn the hard way: the cart URL is `…/ttacart/cart`, not `cart.html` — the site strips the extension — and `getByTestId` matches nothing on these apps because they mark elements with `data-test` while Playwright looks for `data-testid` by default.
+- **`pages/`** — three SnapLocator-generated page objects (`LoginPage`, `Inventorypage`, `Cartpage`) whose locators lead with `getByTestId(...)` and chain `.or(...)` fallbacks (the fallbacks are what carry the flow today, given the `data-test` point above), plus **`HeavyPages.ts`**: a scale sample with 100 locators across every strategy — roles, labels, placeholders, text, test ids, CSS, XPath, `first()` chains, a `filter()` — and 100 one-line action methods rotating through click / fill / textContent / isVisible / hover / count / scrollIntoViewIfNeeded / getAttribute / press / inputValue.
 
 **`DailyTask/`** — day-to-day practice exercises:
 
@@ -496,7 +514,7 @@ npx playwright test tests/01_Basics/01_01_example.spec.ts
 npx playwright test tests/03_Locator_Commands
 ```
 
-Each spec runs once per browser project, so the collected set is the same tests three times over — `npx playwright test --list` currently reports 432 tests across 81 spec files (82 `.spec.ts` files exist in total; `01_05_BCP.spec.ts` declares no tests). Note that the file count is a head count of specs, while the test count multiplies by the three browser projects: 144 tests per browser, 34 of them in the data-driven track. To see what would run without launching a browser:
+Specs run once per active project — chrome only, since the firefox and webkit projects are commented out — so `npx playwright test --list` currently reports 148 tests across 85 spec files (86 `.spec.ts` files exist in total; `01_05_BCP.spec.ts` declares no tests). 34 of those tests belong to the data-driven track and 4 to the page object model track. To see what would run without launching a browser:
 
 ```bash
 npx playwright test --list
