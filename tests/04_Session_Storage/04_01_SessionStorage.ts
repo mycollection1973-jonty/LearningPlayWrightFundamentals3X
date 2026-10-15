@@ -1,5 +1,5 @@
 // 22-09-2026
-// npm install dotenv --save  -> this for env
+// npm install dotenv --save  -> this for .dotenv
 //.env file wont shared in git while .env.example will be shared but user have to give their creds
 // there is error so we run it through Command code by saying ca we run 04_01
 // npx tsx tests/04_Session_Storage/231_SessionStorage.ts 2>&1 | tail -30

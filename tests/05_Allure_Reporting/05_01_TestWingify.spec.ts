@@ -1,5 +1,6 @@
 // 22-09-2026
 // this is for allure report
+// allure serve allure-results -> command for allure reports
 import { test, expect } from '@playwright/test';
 
 //  load the saved session
