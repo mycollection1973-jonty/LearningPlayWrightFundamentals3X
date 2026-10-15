@@ -32,6 +32,8 @@ export default defineConfig({
     trace: 'on-first-retry',
     headless : false,
     viewport : { width : 1920, height : 1080 },
+    screenshot : 'on',
+    video : 'on',
   },
 
   /* Configure projects for major browsers */
@@ -43,16 +45,24 @@ export default defineConfig({
       channel: 'chrome',
     },
   },
+  
+  // {
+  //   name: 'firefox',
+  //   use: {
+  //     ...devices['Desktop Firefox'],
+  //     channel: 'firefox',
+  //   },
+  // },
 
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
+    // {
+    //   name: 'firefox',
+    //   use: { ...devices['Desktop Firefox'] },
+    // },
 
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
+    // {
+    //   name: 'webkit',
+    //   use: { ...devices['Desktop Safari'] },
+    // },
 
     /* Test against mobile viewports. */
     // {
