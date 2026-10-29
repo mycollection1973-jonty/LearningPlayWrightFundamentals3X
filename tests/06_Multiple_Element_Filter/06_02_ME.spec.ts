@@ -10,6 +10,7 @@ test('Basic verify how to handle multiple elements', async({ page }) => {
     for( const link of rightPanelLinksTexts)
     {
         console.log(await link.getAttribute("href"));
+        //console.log(link);
     }
 
     await page.pause();

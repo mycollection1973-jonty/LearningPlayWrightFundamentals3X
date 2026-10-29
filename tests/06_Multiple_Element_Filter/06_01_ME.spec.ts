@@ -7,7 +7,7 @@ test('Basic verify how to handle multiple elements', async({ page }) =>{
     await page.goto("https://app.thetestingacademy.com/playwright/multiple_element_filter");
      const rightPanelLinksTexts: string[] = await page.locator('a.list-group-item').allInnerTexts();
     console.log(rightPanelLinksTexts.length);  // 13
-
+   
     for( const link of rightPanelLinksTexts)
     {
         console.log(link);

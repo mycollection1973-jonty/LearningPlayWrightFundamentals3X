@@ -9,8 +9,8 @@ test.describe('Javascript Alerts', ()=>{
 
     test('JS Alert accept 1', async({ page }) => {
         page.once('dialog', async dialog =>{
-            console.log('Alert Type:',dialog.type());
-            console.log('Alert Message:',dialog.message());
+            console.log('Alert Type1:',dialog.type());
+            console.log('Alert Message1:',dialog.message());
             expect(dialog.message()).toBe('I am a JS Alert');
             await dialog.accept();
         });
@@ -20,9 +20,9 @@ test.describe('Javascript Alerts', ()=>{
 
     test('JS Alert accept 2',async({ page })=> {
         page.once('dialog',async dialog =>{
-            console.log('Alert Type:',dialog.type());
+            console.log('Alert Type2:',dialog.type());
             expect(dialog.type()).toBe('confirm');
-            console.log('Alert Message:',dialog.message());
+            console.log('Alert Message2:',dialog.message());
             expect(dialog.message()).toBe('I am a JS Confirm');
             await dialog.accept();
         });
@@ -34,6 +34,7 @@ test.describe('Javascript Alerts', ()=>{
 
         const inputText = "Hello to All of you";
         page.once('dialog', async dialog => {
+            console.log('Action Type3:', dialog.type());
             expect(dialog.type()).toBe('prompt');
             expect(dialog.defaultValue()).toBe('');
             await dialog.accept(inputText);

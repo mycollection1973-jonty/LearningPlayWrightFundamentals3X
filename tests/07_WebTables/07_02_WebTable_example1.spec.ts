@@ -18,6 +18,8 @@ test('Verify the Web Table Example 1', async({ page }) => {
 
     const row = await page.locator("//table[@id='customers']/tbody/tr").count();
     const cols = await page.locator("//table[@id='customers']/tbody/tr[2]/td").count();
+    console.log(row);
+    console.log(cols);
 
     for(let i=2; i<=row; i++)
     {

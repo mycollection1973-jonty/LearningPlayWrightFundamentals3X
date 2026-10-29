@@ -22,6 +22,7 @@ test.describe('SVG handling', () => {
 
         const titleResults : Locator = page.locator("//div[contains(@data-id,'MP') or contains(@data-id,'ACC') or contains(@data-id,'COM') or contains(@data-id,'CPU')]/div/a[2]");
         const count : number = await titleResults.count();
+        console.log(count);
         for(let i=0; i<count;i++)
         {
             const title : string | null = await titleResults.nth(i).textContent();

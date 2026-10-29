@@ -8,10 +8,11 @@ test('Verify the Web Table Example 2', async({ page }) =>{
 
     const rows = page.locator('table[summary="Sample Table"] tbody tr');
     const rowCount = await rows.count();
+    console.log(rowCount);
 
     for(let i=0; i<=rowCount-1;i++)
     {
-        // const colsheader = await rows.nth(1).locator('th').allInnerTexts();
+        // const colsheader = await rows.nth(1).locator('th').allInnerTexts();  // header
         const rowData = await rows.nth(i).locator("td").allInnerTexts();
         console.log(`Rows ${i+1}: `, rowData);
     }

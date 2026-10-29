@@ -11,11 +11,11 @@ test("Verify the nested frames", async({ page }) => {
     let frame3 : FrameLocator = page.locator("#pact3").first().contentFrame();
 
     await frame1.locator("#inp_val").first().fill("Sonali");
-    await frame2.locator("#jex").fill("Friend");
+    await frame2.locator("#jex").first().fill("Friend");
     await frame3.locator("#glaf").fill("Sydney");
 
     const headerText = await frame1.locator("h3").innerText();
-    console.log(headerText);
+    console.log(headerText);  //Dare Fro You
     await page.waitForTimeout(5000);
 
     await page.pause();

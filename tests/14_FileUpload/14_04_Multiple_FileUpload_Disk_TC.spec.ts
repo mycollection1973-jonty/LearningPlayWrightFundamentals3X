@@ -26,8 +26,8 @@ test.describe('FileUpload handling', () => {
 
         // The dropzone lists what it accepted, so assert on the names.
       const uploadArea = page.locator('div.pf-v6-c-multiple-file-upload');
-      await expect(uploadArea).toContainText('file1.jpg');
-      await expect(uploadArea).toContainText('file2.jpg');
+      await expect(uploadArea).toContainText('file1.jpeg');
+      await expect(uploadArea).toContainText('file2.jpeg');
 
 
         await page.pause();
