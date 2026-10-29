@@ -1,6 +1,6 @@
 # Learning Playwright Fundamentals
 
-A project for learning end-to-end testing with [Playwright](https://playwright.dev). The specs live under `tests/` in numbered learning tracks — basics, test annotations, locator commands, saved-session reuse, reporting, multiple-element filtering, web tables, dropdown select boxes, frames/iframes, keyboard/hover/drag-and-drop, JavaScript alerts, SVG and map interactions, shadow DOM, file upload/download, scrolling, expect assertions, test hooks, data-driven testing over JSON, CSV, Excel, YAML, MySQL and faker-generated data, and the page object model, plus a `DailyTask/` folder for day-to-day practice — built against the Playwright docs site, the Testing Academy and VWO practice apps, the Katalon Cura demo app, the AwesomeQA practice tables, SelectorsHub's iframe scenario and XPath-practice pages, the-internet's dropdown, drag-and-drop, JS-alert and upload pages, keycode.info, SpiceJet, the Applitools demo bank, the OrangeHRM demo, Flipkart, PatternFly's multi-file-upload component, SimpleMaps' India SVG map, and a few other demo sites. A few standalone scripts also exercise the raw Playwright API (`browser` → `context` → `page`) outside the test runner, and every run feeds three reporters at once: the console `line` reporter, Allure, and a custom TTA HTML reporter in `utils/`.
+A project for learning end-to-end testing with [Playwright](https://playwright.dev). The specs live under `tests/` in numbered learning tracks — basics, test annotations, locator commands, saved-session reuse, reporting, multiple-element filtering, web tables, dropdown select boxes, frames/iframes, keyboard/hover/drag-and-drop, JavaScript alerts, SVG and map interactions, shadow DOM, file upload/download, scrolling, expect assertions, test hooks, data-driven testing over JSON, CSV, Excel, YAML, MySQL and faker-generated data, the page object model, calendar and date pickers, and multiple-tab/window handling, plus a `DailyTask/` folder for day-to-day practice and a `Practice_code/` folder for ad-hoc exercises — built against the Playwright docs site, the Testing Academy and VWO practice apps, the Katalon Cura demo app, the AwesomeQA practice tables, SelectorsHub's iframe scenario and XPath-practice pages, the-internet's dropdown, drag-and-drop, JS-alert and upload pages, keycode.info, SpiceJet, the Applitools demo bank, the OrangeHRM demo and its open-source site, Flipkart, ESPNcricinfo, testautomationpractice.blogspot.com, PatternFly's multi-file-upload component, SimpleMaps' India SVG map, and a few other demo sites. A few standalone scripts also exercise the raw Playwright API (`browser` → `context` → `page`) outside the test runner, and every run feeds three reporters at once: the console `line` reporter, Allure, and a custom TTA HTML reporter in `utils/`.
 
 ## Prerequisites
 
@@ -82,7 +82,8 @@ npm init playwright@latest
 │   │   ├── 07_04_WebTable_example3.spec.ts  # filter({ hasText }) on a link and a footer link
 │   │   ├── 07_05_WebTable_example4.spec.ts  # :has(td:text(…)) row locator, ticks the checkbox
 │   │   ├── 07_06_WT_Pagination.spec.ts      # Next-clicks until a row is found, reads its cells
-│   │   └── 07_07_WT_Pagination.spec.ts      # same walk extracted into a reusable helper
+│   │   ├── 07_07_WT_Pagination.spec.ts      # same walk extracted into a reusable helper
+│   │   └── 07_08_WT_Practice.spec.ts        # blogspot BookTable: every row's cells, XPath walk commented
 │   ├── 08_Web_Select_Frames_IFrame/
 │   │   ├── 08_01_Select.spec.ts             # native <select> driven with selectOption
 │   │   ├── 08_02_Custom.spec.ts             # custom dropdowns: test-id trigger + role option
@@ -173,7 +174,14 @@ npm init playwright@latest
 │   │       ├── InventoryPage.ts             # TTACart inventory page object (SnapLocator)
 │   │       ├── CartPage.ts                  # TTACart cart page object (SnapLocator)
 │   │       └── HeavyPages.ts                # 100 locators + 100 methods, scale sample
-│   └── DailyTask/
+│   ├── 21_Calender_Date_Picker/
+│   │   ├── 21_01_CalenderDatePicker.spec.ts               # one-way trip, picks a fixed day-<date> cell
+│   │   ├── 21_02_CalenderDataPicker_With_Variable.spec.ts # round trip from date variables
+│   │   └── 21_03_CalenderDatePicker_With_Utility.spec.ts  # the same flow through a selectDate() helper
+│   ├── 22_Multiple_Tab_Window_Handling/
+│   │   ├── 22_01_Handling_New_Tab.spec.ts                 # target=_blank link: context.waitForEvent('page')
+│   │   └── 22_02_Handling_New_Window.spec.ts              # window.open popup: page.waitForEvent('popup')
+│   ├── DailyTask/
 │       ├── 01_159_LoginPage.spec.ts         # Katalon Cura login, asserts the page header
 │       ├── 02_179_LoginPage.spec.ts         # TTA login with bad credentials, asserts the URL
 │       ├── 03_259_WebTable.spec.ts          # TTA employee table: ticks Rohan.Mehta's checkbox
@@ -188,6 +196,9 @@ npm init playwright@latest
 │       └── 6_Oct/
 │           ├── 01_ShadowDOM.spec.ts         # SelectorsHub XPath practice: shadow-root fields
 │           └── 02_UploadProfile.spec.ts     # TTA student dashboard: fill the email step
+│   └── Practice_code/
+│       ├── cricinfo.spec.ts                 # collects every nav link, clicks the one reading Hindi Videos
+│       └── cricinfoTable.spec.ts            # cricinfo search: opens the search box, searches James Franklin
 ├── utils/
 │   ├── CustomReporter.ts                   # custom TTA HTML reporter (writes tta-report/)
 │   └── selfHeal.ts                         # attachment types for the reporter's Self-Heal tab
@@ -220,7 +231,7 @@ npm init playwright@latest
 
 ### Specs (run by the Playwright test runner)
 
-Files ending in `.spec.ts` are picked up automatically from anywhere under `tests/`. They are grouped into numbered learning tracks, plus a `DailyTask/` folder for practice exercises:
+Files ending in `.spec.ts` are picked up automatically from anywhere under `tests/`. They are grouped into numbered learning tracks, plus `DailyTask/` and `Practice_code/` folders for practice exercises:
 
 **`01_Basics/`** — the fundamentals:
 
@@ -267,7 +278,8 @@ Files ending in `.spec.ts` are picked up automatically from anywhere under `test
 - **`07_04_WebTable_example3.spec.ts`** — despite the track name this one runs on the multi-element-filter page, and it is about `filter()` rather than tables: it clicks the *Forgotten Password* link through `page.locator('a.list-group-item').filter({ hasText: 'Forgotten Password' })`, then resolves the footer's *Privacy Policy* link the same way and asserts its `href` is `#privacy-policy`. Ends with `page.pause()`.
 - **`07_05_WebTable_example4.spec.ts`** — the CSS pseudo-class route to the same checkbox tick as `DailyTask/03`: `page.locator("tr:has(td:text('Rohan.Mehta'))")` narrows the table down to the row containing that cell, and `.locator('input').first()` clicks its checkbox. The commented-out line above it shows the XPath `preceding-sibling::td` equivalent. No `page.pause()` — it waits five seconds instead.
 - **`07_06_WT_Pagination.spec.ts`** — walks the paginated table at `https://app.thetestingacademy.com/playwright/tables/webtable` for *Camila Lopez*: a `while` loop filters `#employees-tbody tr` by `hasText` until the row appears, clicking `getByTestId('next-page')` each time and throwing `Row Not Found!!!` once that button is disabled. Then it reads her email and country cells (`td[data-col='email']` / `td[data-col='country']`). Ends with `page.pause()`.
-- **`07_07_WT_Pagination.spec.ts`** — the same pagination walk refactored into a reusable `findRowByName(page, name)` helper that returns the matching row `Locator`; the test calls it for *Camila Lopez* and reads the email and country cells. (Small bug to notice: the country locator `td[data-col='country` is missing its closing `']`.) Ends with `page.pause()`.
+- **`07_07_WT_Pagination.spec.ts`** — the same pagination walk refactored into a reusable `findRowByName(page, name)` helper that returns the matching row `Locator`; the test calls it for *Camila Lopez* and reads the email and country cells. Ends with `page.pause()`.
+- **`07_08_WT_Practice.spec.ts`** — `https://testautomationpractice.blogspot.com/`: locates the *BookTable* (`table[name="BookTable"] tbody tr`), logs the row count, and prints each row's cell texts one row at a time. A large commented-out block below keeps the equivalent dynamic-XPath walk — build each cell's path from three fragments, then read `preceding-sibling::td` when a cell contains *Amod*. No pause; it only logs.
 
 **`08_Web_Select_Frames_IFrame/`** — dropdowns, native and custom:
 
@@ -309,7 +321,7 @@ Files ending in `.spec.ts` are picked up automatically from anywhere under `test
 - **`14_01_FileUpload_TC.spec.ts`** — the-internet's upload page: passes `testdata.txt` to `setInputFiles` using `path.join(__dirname, 'testdata.txt')`, clicks *Upload*, and asserts `#uploaded-files` contains the filename. The one 14-file without a pause — it asserts instead.
 - **`14_02_FileUpload_TC.spec.ts`** — TTA's `widgets/upload-download` page: the same text file into `#single-upload`. Ends with `page.pause()`.
 - **`14_03_Multiple_FileUpload_TC.spec.ts`** — PatternFly's multiple-file-upload component with two *in-memory* files: `{ name, mimeType, buffer }` objects built around `Buffer.from(...)`, so nothing has to exist on disk. Ends with `page.pause()`.
-- **`14_04_Multiple_FileUpload_Disk_TC.spec.ts`** — the same component with *real files from disk*: `file1.jpeg` and `file2.jpeg` live next to the spec and go in as paths, and the dropzone is then asserted to list `file1.jpg` / `file2.jpg` — a substring match that also passes for *file1.jpeg*. Ends with `page.pause()`.
+- **`14_04_Multiple_FileUpload_Disk_TC.spec.ts`** — the same component with *real files from disk*: `file1.jpeg` and `file2.jpeg` live next to the spec and go in as paths, and the dropzone is then asserted to list `file1.jpeg` / `file2.jpeg`. Ends with `page.pause()`.
 - **`14_05_Mixed_FileUpload_TC.spec.ts`** — a mixed three-file set from the spec's own folder: `sample.pdf`, `sample.jpg`, and `sample.docx`. A commented-out block below shows the same upload with dropzone assertions. Ends with `page.pause()`.
 - **`14_06_Mixed_FileUpload_OtherDir_TC.spec.ts`** — the same three files, but from the shared `testdata/` folder at the repo root (`path.join(__dirname, '..', '..', 'testdata', …)`) — the pattern to use when fixtures should not sit next to the spec. Ends with `page.pause()`.
 - The folder's fixtures: **`testdata.txt`** for 14_01/14_02; **`file1.jpeg`** / **`file2.jpeg`** (Playwright icon cards) for 14_04; **`sample.pdf`** (a minimal but valid PDF), **`sample.jpg`** (another icon card), and **`sample.docx`** (a minimal Word document) for 14_05, with copies in `testdata/` for 14_06. All of these are located with Node's built-in `path` module — the `path` package listed in `package.json` is not what gets imported.
@@ -364,6 +376,17 @@ Files ending in `.spec.ts` are picked up automatically from anywhere under `test
 - **`20_04_Heavy_Page.spec.ts`** — the same three steps, but every interaction goes through `pages/HeavyPages.ts` (`locator001` fills the username, `locator004` adds the item, `locator006` opens the cart, `locator016` proves the T-shirt is on the cart page). Two facts this flow makes you learn the hard way: the cart URL is `…/ttacart/cart`, not `cart.html` — the site strips the extension — and `getByTestId` matches nothing on these apps because they mark elements with `data-test` while Playwright looks for `data-testid` by default.
 - **`pages/`** — three SnapLocator-generated page objects (`LoginPage`, `Inventorypage`, `Cartpage`) whose locators lead with `getByTestId(...)` and chain `.or(...)` fallbacks (the fallbacks are what carry the flow today, given the `data-test` point above), plus **`HeavyPages.ts`**: a scale sample with 100 locators across every strategy — roles, labels, placeholders, text, test ids, CSS, XPath, `first()` chains, a `filter()` — and 100 one-line action methods rotating through click / fill / textContent / isVisible / hover / count / scrollIntoViewIfNeeded / getAttribute / press / inputValue.
 
+**`21_Calender_Date_Picker/`** — the TTA calendar widget (`/playwright/widgets/calendar`), three takes on one booking flow:
+
+- **`21_01_CalenderDatePicker.spec.ts`** — the direct route: picks the *One-way* tab, opens the depart trigger, waits for `date-picker` to be visible, clicks a hard-coded day cell (`day-2026-11-22`), presses *Search flights*, and asserts that date comes back in `search-output`. Ends with `page.pause()`.
+- **`21_02_CalenderDataPicker_With_Variable.spec.ts`** — the same booking with the dates pulled out into `departureDate` / `returnDate` variables (the shape the data could arrive in from a config or data file): round trip, both pickers asserted visible, one `next-month` click to reach the return month, then the same `search-output` assertions for both dates. Ends with `page.pause()`.
+- **`21_03_CalenderDatePicker_With_Utility.spec.ts`** — the flow refactored into an `async function selectDate(page, date)`: assert the picker is visible, build the `day-<date>` locator inside it, click *next month* until that cell exists — capped at 24 clicks, so an unreachable date fails instead of looping forever — then click it. The spec calls the helper for both legs, which is what walks the calendar forward to the January 2027 return date. Ends with `page.pause()`.
+
+**`22_Multiple_Tab_Window_Handling/`** — pages that open outside the current one:
+
+- **`22_01_Handling_New_Tab.spec.ts`** — the OrangeHRM demo's *OrangeHRM, Inc* link opens a new **tab**. The click and `context.waitForEvent('page')` are raced inside a single `Promise.all`, so the listener is armed before the click; the new page is then awaited, its `domcontentloaded` state waited for, its title logged, and a `.page-title h1` assertion run — all before `page.bringToFront()` returns to the original tab to fill the username field and `newPage.close()` shuts the tab down. Note the `waitUntil` / `timeout` lines after the `goto` are stray labels rather than options, so the navigation runs with the defaults. Ends with `page.pause()`.
+- **`22_02_Handling_New_Window.spec.ts`** — a **popup window** instead: `page.setContent()` injects a button whose `onclick` calls `window.open('https://www.orangehrm.com', '_blank', 'width=600, height=400')`, so the popup is sized independently. The handler is armed with `page.waitForEvent('popup')` *before* the click, then the popup is awaited, its title logged, the same heading asserted, closed, and the original page brought back to the front to assert the button is still visible. Ends with `page.pause()`.
+
 **`DailyTask/`** — day-to-day practice exercises:
 
 - **`01_159_LoginPage.spec.ts`** — clicks "Make Appointment" on the Katalon Cura demo app, logs in as `John Doe`, and asserts the header on the appointment page.
@@ -386,6 +409,11 @@ A `6_Oct/` subfolder holds the 06-10 session:
 
 - **`01_ShadowDOM.spec.ts`** — SelectorsHub's XPath-practice page, aiming at its shadow-root widget: scopes to `#userName`, fills the *enter name* field with *Dominoz* and *Enter pizza name* with *cheese*, then presses `Tab` three times and types a password, relying on Playwright reaching straight through the shadow boundaries. Ends with `page.pause()`.
 - **`02_UploadProfile.spec.ts`** — TTA's student dashboard: fills the email field (`getByPlaceholder('Enter your email address')`) and clicks the exact *Continue* button — the email step of the sign-in flow. Ends with `page.pause()`.
+
+**`Practice_code/`** — scratch specs kept out of the numbered tracks:
+
+- **`cricinfo.spec.ts`** — goes to `https://www.cricinfo.com/` and collects every nav link with `page.locator('ul li a').allInnerTexts()`, logs the count and each label, and clicks the one reading *Hindi Videos* via `page.getByText(lt).first()`. Ends with `page.pause()`. (The `lstatSync` import at the top is left over and unused.)
+- **`cricinfoTable.spec.ts`** — the search route on the same site: clicks the search icon (`i.icon-search-outlined`), fills *James Franklin* into `getByPlaceholder('Search Players, Teams or Series', { exact: true })`, and presses `Enter`. Ends with `page.pause()`.
 
 New specs start from `template/template.spec.ts` at the repo root — a date comment, the `@playwright/test` import, a `test()` whose title is there to replace, `page.goto`, a `// Code` marker, and a trailing `page.pause()`. It sits outside `testDir`, so the runner never collects it; copy it into the relevant numbered track and fill in the title, URL, and steps.
 
@@ -503,7 +531,7 @@ npx playwright test
 
 > **Note** — `02_01_TestAnnotations.spec.ts` currently has an active `test.only('login as man')`. Focus mode is run-wide, so while that line is there a full run executes only that one test (once per browser project) and everything else is skipped. Remove or comment out the `.only` to run the whole suite.
 
-> **Note** — forty-six specs call `page.pause()` at the end, which opens the Inspector and waits for you to resume: `03_03_Fresh.spec.ts`, `03_04_Project3.spec.ts`, `03_05_getByRole.spec.ts`, `03_06_getByRole.spec.ts`, `06_01_ME.spec.ts`, `06_02_ME.spec.ts`, `07_01_WebTable.spec.ts`, `07_03_WebTable_example2.spec.ts`, `07_04_WebTable_example3.spec.ts`, `07_06_WT_Pagination.spec.ts`, `07_07_WT_Pagination.spec.ts`, all of `08_Web_Select_Frames_IFrame/`, `09_Frame_IFrame/`, `10_Keyboard_Hover_Drag_Drop_Calender/`, and `12_Handle_SVG/` (fifteen files), the first test of `11_01_JS_Alert.spec.ts`, `13_01_Shadow_DOM_TC.spec.ts`, five of the six `14_FileUpload/` specs (`14_01` asserts instead), `15_01_FileDownload_TC.spec.ts`, `16_01_Scroll_TC.spec.ts`, `17_04_Expect4.spec.ts`, and ten DailyTask specs (`02_179_LoginPage.spec.ts`, `03_259_WebTable.spec.ts`, `04_299_AllLogic.spec.ts`, `05_1010_Asserrtions.spec.ts`, `1_Oct/01_Hover.spec.ts`, `1_Oct/02_Applitools.spec.ts`, `26/9_Pagination/01_WT_OrangeHRM.spec.ts`, `26/9_Pagination/02_WT_FLipkart.spec.ts`, `6_Oct/01_ShadowDOM.spec.ts`, `6_Oct/02_UploadProfile.spec.ts`). (`07_05_WebTable_example4.spec.ts` has its pause commented out and waits five seconds instead.) A full run stops at each one, so comment those lines out (or run the specific file you are working on) when you want a clean pass.
+> **Note** — fifty-three specs call `page.pause()` at the end, which opens the Inspector and waits for you to resume: `03_03_Fresh.spec.ts`, `03_04_Project3.spec.ts`, `03_05_getByRole.spec.ts`, `03_06_getByRole.spec.ts`, `06_01_ME.spec.ts`, `06_02_ME.spec.ts`, `07_01_WebTable.spec.ts`, `07_03_WebTable_example2.spec.ts`, `07_04_WebTable_example3.spec.ts`, `07_06_WT_Pagination.spec.ts`, `07_07_WT_Pagination.spec.ts`, all of `08_Web_Select_Frames_IFrame/`, `09_Frame_IFrame/`, `10_Keyboard_Hover_Drag_Drop_Calender/`, and `12_Handle_SVG/` (fifteen files), the first test of `11_01_JS_Alert.spec.ts`, `13_01_Shadow_DOM_TC.spec.ts`, five of the six `14_FileUpload/` specs (`14_01` asserts instead), `15_01_FileDownload_TC.spec.ts`, `16_01_Scroll_TC.spec.ts`, `17_04_Expect4.spec.ts`, and ten DailyTask specs (`02_179_LoginPage.spec.ts`, `03_259_WebTable.spec.ts`, `04_299_AllLogic.spec.ts`, `05_1010_Asserrtions.spec.ts`, `1_Oct/01_Hover.spec.ts`, `1_Oct/02_Applitools.spec.ts`, `26/9_Pagination/01_WT_OrangeHRM.spec.ts`, `26/9_Pagination/02_WT_FLipkart.spec.ts`, `6_Oct/01_ShadowDOM.spec.ts`, `6_Oct/02_UploadProfile.spec.ts`), and seven more — the three `21_Calender_Date_Picker/` specs, both `22_Multiple_Tab_Window_Handling/` specs, and both `Practice_code/` specs. (`07_05_WebTable_example4.spec.ts` has its pause commented out and waits five seconds instead.) A full run stops at each one, so comment those lines out (or run the specific file you are working on) when you want a clean pass.
 
 > **Note** — the 04 and 05 specs depend on `user-session.json`, which does not exist until you run `04_01_SessionStorage.ts`. Without it they load an empty state, land on the login page, and fail their URL assertions.
 
@@ -514,7 +542,7 @@ npx playwright test tests/01_Basics/01_01_example.spec.ts
 npx playwright test tests/03_Locator_Commands
 ```
 
-Specs run once per active project — chrome only, since the firefox and webkit projects are commented out — so `npx playwright test --list` currently reports 148 tests across 85 spec files (86 `.spec.ts` files exist in total; `01_05_BCP.spec.ts` declares no tests). 34 of those tests belong to the data-driven track and 4 to the page object model track. To see what would run without launching a browser:
+Specs run once per active project — chrome only, since the firefox and webkit projects are commented out — so `npx playwright test --list` currently reports 156 tests across 93 spec files (94 `.spec.ts` files exist in total; `01_05_BCP.spec.ts` declares no tests). 34 of those tests belong to the data-driven track and 4 to the page object model track. To see what would run without launching a browser:
 
 ```bash
 npx playwright test --list
